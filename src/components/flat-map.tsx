@@ -10,41 +10,16 @@ import { countryFeatures, type CountryFeature } from "@/lib/geo"
 import { OCEANS } from "@/lib/oceans"
 import { getCountryInfo, getCapitalLatLng } from "@/lib/country-info"
 import { useTravelStore, useResolvedTheme } from "@/lib/store"
-import { useT, statusKey } from "@/lib/i18n"
 import { PLANE_PATH } from "@/lib/flight"
 import { useWhale } from "@/lib/use-whale"
 import { MAP_PALETTE, STATUS, statusFill, type MapPalette } from "@/lib/colors"
-import { ADVISORY_META } from "@/lib/advisory"
 import { useAdvisoryStore, combinedLevel } from "@/lib/advisory-store"
 import type { Status } from "@/lib/store"
 import type { Size } from "@/lib/use-element-size"
 import { PlusIcon, MinusIcon, TargetIcon } from "@/components/icons"
+import { CountryTooltip, type Hover } from "@/components/country-tooltip"
 
 type Props = { size: Size }
-type Hover = {
-  name: string
-  flag: string
-  status: Status | undefined
-  level: number | undefined
-  x: number
-  y: number
-}
-
-// Vertical 4-step risk meter (green→red), filling up to the advisory level.
-const RiskMeter = ({ level }: { level: number }) => (
-  <span className="flex flex-col-reverse gap-0.5">
-    {[1, 2, 3, 4].map((seg) => (
-      <span
-        key={seg}
-        className="h-1.5 w-1.5 rounded-[1px]"
-        style={{
-          background: ADVISORY_META[seg as 1 | 2 | 3 | 4].color,
-          opacity: seg <= level ? 1 : 0.18,
-        }}
-      />
-    ))}
-  </span>
-)
 type Transform = { k: number; x: number; y: number }
 
 // Five-pointed star centred at the origin — the cartographic mark for a capital.
@@ -123,7 +98,6 @@ const CountryPaths = memo(function CountryPaths({
 })
 
 const FlatMap = ({ size }: Props) => {
-  const tr = useT()
   const flight = useTravelStore((s) => s.flight)
   const openFlight = useTravelStore((s) => s.openFlight)
   const southUp = useTravelStore((s) => s.southUp)
@@ -404,22 +378,7 @@ const FlatMap = ({ size }: Props) => {
         </button>
       </div>
 
-      {hover && (
-        <div
-          className="pointer-events-none fixed z-10 flex -translate-x-1/2 -translate-y-[130%] items-center gap-2 whitespace-nowrap rounded-lg border border-[var(--border-strong)] bg-[var(--panel)] px-2.5 py-1.5 text-[13px] text-[var(--ink)] shadow-lg"
-          style={{ left: hover.x, top: hover.y }}
-        >
-          {hover.level && <RiskMeter level={hover.level} />}
-          <span>
-            <strong>
-              {hover.flag} {hover.name}
-            </strong>
-            <span className="ml-2 text-[11px] text-[var(--ink-dim)]">
-              {tr(statusKey(hover.status))}
-            </span>
-          </span>
-        </div>
-      )}
+      {hover && <CountryTooltip hover={hover} />}
 
       {flight && flightPos && planeHover && (
         <div

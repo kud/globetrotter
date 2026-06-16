@@ -1,19 +1,25 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef } from "react"
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent,
+} from "react"
 import Globe, { type GlobeMethods } from "react-globe.gl"
 import { MeshPhongMaterial } from "three"
 import { countryFeatures, countryById, type CountryFeature } from "@/lib/geo"
 import { getCountryInfo, getCapitalLatLng } from "@/lib/country-info"
 import { useTravelStore, useResolvedTheme } from "@/lib/store"
-import { useT, statusKey } from "@/lib/i18n"
 import { MAP_PALETTE, statusFill } from "@/lib/colors"
 import { OCEANS } from "@/lib/oceans"
-import { ADVISORY_META } from "@/lib/advisory"
 import { useAdvisoryStore, combinedLevel } from "@/lib/advisory-store"
 import { PLANE_PATH, flightTooltip, type LiveFlight } from "@/lib/flight"
 import { useWhale } from "@/lib/use-whale"
 import type { Size } from "@/lib/use-element-size"
+import { CountryTooltip, type Hover } from "@/components/country-tooltip"
 
 type Props = { size: Size }
 
@@ -40,14 +46,6 @@ type HtmlItem =
   | { kind: "whale"; lat: number; lng: number; key: number }
   | { kind: "capital"; lat: number; lng: number }
 
-// Inline HTML risk meter (matches the flat map's RiskMeter) for globe labels.
-const meterHtml = (level: number | undefined) => {
-  if (!level) return ""
-  const seg = (n: 1 | 2 | 3 | 4) =>
-    `<span style="display:block;width:6px;height:6px;border-radius:1px;background:${ADVISORY_META[n].color};opacity:${n <= level ? 1 : 0.18}"></span>`
-  return `<span style="display:flex;flex-direction:column-reverse;gap:2px">${seg(1)}${seg(2)}${seg(3)}${seg(4)}</span>`
-}
-
 // The viewer's coordinates, resolved once and reused so re-entering the globe
 // view never re-prompts for permission or re-runs the fly-to animation.
 let cachedViewerLatLng: { lat: number; lng: number } | null = null
@@ -62,7 +60,6 @@ const CAPITAL_STAR =
 const capitalMarkup = `<svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="none" stroke="rgba(255,206,77,0.5)" stroke-width="1.3"/><path d="${CAPITAL_STAR}" fill="#ffce4d" stroke="rgba(0,0,0,0.5)" stroke-width="1" stroke-linejoin="round" paint-order="stroke"/></svg>`
 
 const GlobeView = ({ size }: Props) => {
-  const t = useT()
   const flight = useTravelStore((s) => s.flight)
   const southUp = useTravelStore((s) => s.southUp)
   const liveSources = useAdvisoryStore((s) => s.sources)
@@ -74,6 +71,8 @@ const GlobeView = ({ size }: Props) => {
   const selectedId = useTravelStore((s) => s.selectedId)
   const select = useTravelStore((s) => s.select)
   const whale = useWhale()
+  const [hover, setHover] = useState<Hover | null>(null)
+  const mouse = useRef({ x: 0, y: 0 })
 
   const palette = MAP_PALETTE[theme]
 
@@ -94,18 +93,27 @@ const GlobeView = ({ size }: Props) => {
     [statuses, selectedId, palette],
   )
 
-  const label = useCallback(
-    (d: object) => {
+  // Cursor-following hover, identical to the flat map: track the pointer and,
+  // when react-globe.gl reports a hovered polygon, populate the shared tooltip.
+  const onMove = useCallback((e: MouseEvent) => {
+    mouse.current = { x: e.clientX, y: e.clientY }
+    setHover((prev) => (prev ? { ...prev, x: e.clientX, y: e.clientY } : prev))
+  }, [])
+
+  const onPolygonHover = useCallback(
+    (d: object | null) => {
+      if (!d) return setHover(null)
       const f = d as CountryFeature
-      const status = statuses[f.id]
-      const flag = getCountryInfo(f.id)?.flag ?? ""
-      const meter = meterHtml(combinedLevel(f.id, liveSources))
-      return `<div style="display:flex;align-items:center;gap:8px;font:13px var(--font-geist-sans),system-ui,sans-serif;white-space:nowrap;background:var(--panel);color:var(--ink);padding:6px 10px;border-radius:8px;border:1px solid var(--border-strong);box-shadow:0 10px 20px rgba(0,0,0,.3)">
-        ${meter}
-        <span><strong>${flag} ${f.properties.name}</strong><span style="margin-left:8px;color:var(--ink-dim);font-size:11px">${t(statusKey(status))}</span></span>
-      </div>`
+      setHover({
+        name: f.properties.name,
+        flag: getCountryInfo(f.id)?.flag ?? "",
+        status: statuses[f.id],
+        level: combinedLevel(f.id, liveSources),
+        x: mouse.current.x,
+        y: mouse.current.y,
+      })
     },
-    [statuses, t, liveSources],
+    [statuses, liveSources],
   )
 
   const strokeColor = useCallback(
@@ -285,59 +293,62 @@ const GlobeView = ({ size }: Props) => {
   }, [focusId])
 
   return (
-    <Globe
-      ref={globeRef}
-      width={size.width}
-      height={size.height}
-      backgroundColor="rgba(0,0,0,0)"
-      globeMaterial={oceanMaterial}
-      showAtmosphere
-      atmosphereColor={palette.atmosphere}
-      atmosphereAltitude={0.18}
-      polygonsData={countryFeatures}
-      polygonAltitude={0.01}
-      polygonCapColor={capColor}
-      polygonSideColor={() => "rgba(90,169,255,0.25)"}
-      polygonStrokeColor={strokeColor}
-      polygonLabel={label}
-      onPolygonClick={handleClick}
-      polygonsTransitionDuration={450}
-      labelsData={labels}
-      labelLat={(d) => (d as GlobeLabel).lat}
-      labelLng={(d) => (d as GlobeLabel).lng}
-      labelText={(d) => (d as GlobeLabel).text}
-      labelColor={(d) => (d as GlobeLabel).color}
-      labelSize={(d) => (d as GlobeLabel).size}
-      labelDotRadius={(d) => (d as GlobeLabel).dot}
-      labelResolution={2}
-      labelAltitude={0.013}
-      labelsTransitionDuration={0}
-      arcsData={flightArcs}
-      arcStartLat={(d) => (d as FlightArc).startLat}
-      arcStartLng={(d) => (d as FlightArc).startLng}
-      arcEndLat={(d) => (d as FlightArc).endLat}
-      arcEndLng={(d) => (d as FlightArc).endLng}
-      arcColor={() => "#5aa9ff"}
-      arcStroke={0.4}
-      arcDashLength={0.4}
-      arcDashGap={0.18}
-      arcDashAnimateTime={4000}
-      arcAltitudeAutoScale={0.3}
-      arcsTransitionDuration={0}
-      htmlElementsData={htmlItems}
-      htmlLat={(d) =>
-        (d as HtmlItem).kind === "flight"
-          ? (d as { flight: LiveFlight }).flight.lat
-          : (d as { lat: number }).lat
-      }
-      htmlLng={(d) =>
-        (d as HtmlItem).kind === "flight"
-          ? (d as { flight: LiveFlight }).flight.lng
-          : (d as { lng: number }).lng
-      }
-      htmlAltitude={(d) => ((d as HtmlItem).kind === "flight" ? 0.05 : 0.012)}
-      htmlElement={htmlElement}
-    />
+    <div className="h-full w-full" onMouseMove={onMove}>
+      <Globe
+        ref={globeRef}
+        width={size.width}
+        height={size.height}
+        backgroundColor="rgba(0,0,0,0)"
+        globeMaterial={oceanMaterial}
+        showAtmosphere
+        atmosphereColor={palette.atmosphere}
+        atmosphereAltitude={0.18}
+        polygonsData={countryFeatures}
+        polygonAltitude={0.01}
+        polygonCapColor={capColor}
+        polygonSideColor={() => "rgba(90,169,255,0.25)"}
+        polygonStrokeColor={strokeColor}
+        onPolygonHover={onPolygonHover}
+        onPolygonClick={handleClick}
+        polygonsTransitionDuration={450}
+        labelsData={labels}
+        labelLat={(d) => (d as GlobeLabel).lat}
+        labelLng={(d) => (d as GlobeLabel).lng}
+        labelText={(d) => (d as GlobeLabel).text}
+        labelColor={(d) => (d as GlobeLabel).color}
+        labelSize={(d) => (d as GlobeLabel).size}
+        labelDotRadius={(d) => (d as GlobeLabel).dot}
+        labelResolution={2}
+        labelAltitude={0.013}
+        labelsTransitionDuration={0}
+        arcsData={flightArcs}
+        arcStartLat={(d) => (d as FlightArc).startLat}
+        arcStartLng={(d) => (d as FlightArc).startLng}
+        arcEndLat={(d) => (d as FlightArc).endLat}
+        arcEndLng={(d) => (d as FlightArc).endLng}
+        arcColor={() => "#5aa9ff"}
+        arcStroke={0.4}
+        arcDashLength={0.4}
+        arcDashGap={0.18}
+        arcDashAnimateTime={4000}
+        arcAltitudeAutoScale={0.3}
+        arcsTransitionDuration={0}
+        htmlElementsData={htmlItems}
+        htmlLat={(d) =>
+          (d as HtmlItem).kind === "flight"
+            ? (d as { flight: LiveFlight }).flight.lat
+            : (d as { lat: number }).lat
+        }
+        htmlLng={(d) =>
+          (d as HtmlItem).kind === "flight"
+            ? (d as { flight: LiveFlight }).flight.lng
+            : (d as { lng: number }).lng
+        }
+        htmlAltitude={(d) => ((d as HtmlItem).kind === "flight" ? 0.05 : 0.012)}
+        htmlElement={htmlElement}
+      />
+      {hover && <CountryTooltip hover={hover} />}
+    </div>
   )
 }
 
