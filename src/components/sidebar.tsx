@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { countries, countryById, totalCountries } from "@/lib/geo"
+import { countries, countryById } from "@/lib/geo"
 import { getCountryInfo } from "@/lib/country-info"
 import { useT, statusKey } from "@/lib/i18n"
 import { formatVisit } from "@/components/country-panel"
@@ -18,6 +18,11 @@ import {
   PasteIcon,
   GlobeIcon,
 } from "@/components/icons"
+
+// The everyday "countries in the world" figure: 193 UN members + 2 observer
+// states. Used for the progress %, rather than the map's 249 selectable areas
+// (which include split territories), so the headline matches expectations.
+const WORLD_COUNTRIES = 195
 
 const Stat = ({ value, label }: { value: string; label: string }) => (
   <div className="rounded-xl bg-[var(--panel-2)] px-2 py-3 text-center">
@@ -121,7 +126,7 @@ const Sidebar = () => {
     }
   }, [statuses, notes, reviews])
 
-  const percent = Math.round((visited / totalCountries) * 100)
+  const percent = Math.min(100, Math.round((visited / WORLD_COUNTRIES) * 100))
 
   const visible = useMemo(() => {
     const list = marked.filter((c) => filter === "all" || c.status === filter)
@@ -241,7 +246,7 @@ const Sidebar = () => {
             {t("stat.visited")}
           </span>
           <span className="font-semibold tabular-nums text-[var(--ink)]">
-            {hydrated ? `${visited} / ${totalCountries} · ${percent}%` : "—"}
+            {hydrated ? `${visited} / ${WORLD_COUNTRIES} · ${percent}%` : "—"}
           </span>
         </div>
         <div className="relative h-2.5 rounded-full bg-[var(--panel-2)]">
