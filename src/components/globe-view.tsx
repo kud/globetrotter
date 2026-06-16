@@ -306,7 +306,7 @@ const GlobeView = ({ size }: Props) => {
         polygonsData={countryFeatures}
         polygonAltitude={0.01}
         polygonCapColor={capColor}
-        polygonSideColor={() => "rgba(90,169,255,0.25)"}
+        polygonSideColor={() => "rgba(0,0,0,0)"}
         polygonStrokeColor={strokeColor}
         onPolygonHover={onPolygonHover}
         onPolygonClick={handleClick}

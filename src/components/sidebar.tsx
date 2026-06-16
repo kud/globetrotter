@@ -66,6 +66,8 @@ const Sidebar = () => {
   const fileRef = useRef<HTMLInputElement>(null)
   const [query, setQuery] = useState("")
   const [copied, setCopied] = useState(false)
+  const [pasteOpen, setPasteOpen] = useState(false)
+  const [pasteText, setPasteText] = useState("")
   const [filter, setFilter] = useState<
     "all" | "visited" | "wishlist" | "blocked"
   >("all")
@@ -194,9 +196,13 @@ const Sidebar = () => {
     }
   }
 
-  const handlePaste = async () => {
+  // A paste-into-field flow instead of navigator.clipboard.readText(), which
+  // triggers the browser's clipboard-permission popover.
+  const handlePasteSubmit = () => {
     try {
-      applyParsed(parseSaveFile(await navigator.clipboard.readText()))
+      applyParsed(parseSaveFile(pasteText))
+      setPasteOpen(false)
+      setPasteText("")
     } catch (error) {
       window.alert(error instanceof Error ? error.message : t("import.error"))
     }
@@ -443,12 +449,36 @@ const Sidebar = () => {
             {copied ? t("copied") : t("copy")}
           </button>
           <button
-            onClick={handlePaste}
+            onClick={() => setPasteOpen((o) => !o)}
             className="flex flex-1 items-center justify-center gap-1.5 rounded-[10px] border border-[var(--border)] bg-[var(--panel-2)] px-3 py-2.5 text-sm hover:border-[var(--accent)] hover:bg-[var(--panel-hover)]"
+            style={
+              pasteOpen
+                ? { borderColor: "var(--accent)", color: "var(--accent)" }
+                : undefined
+            }
           >
             <PasteIcon width={16} height={16} /> {t("paste")}
           </button>
         </div>
+        {pasteOpen && (
+          <div className="mb-2 flex flex-col gap-2">
+            <textarea
+              value={pasteText}
+              onChange={(e) => setPasteText(e.target.value)}
+              placeholder={t("paste.placeholder")}
+              rows={4}
+              autoFocus
+              className="w-full resize-none rounded-[10px] border border-[var(--border)] bg-[var(--panel-2)] p-2.5 font-mono text-xs outline-none focus:border-[var(--accent)]"
+            />
+            <button
+              onClick={handlePasteSubmit}
+              disabled={!pasteText.trim()}
+              className="rounded-[10px] border border-[var(--border)] bg-[var(--panel-2)] px-3 py-2 text-sm hover:border-[var(--accent)] hover:bg-[var(--panel-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {t("paste.load")}
+            </button>
+          </div>
+        )}
         <div className="mb-2 flex gap-2">
           <button
             onClick={handleExport}
