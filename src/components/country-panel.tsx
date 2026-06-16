@@ -316,27 +316,33 @@ const CountryPanel = () => {
   useEffect(() => {
     if (selectedId) useAdvisoryStore.getState().load()
   }, [selectedId])
-  const [wiki, setWiki] = useState<{ extract: string; url: string } | null>(
-    null,
-  )
+  // Keyed by country+locale so a stale summary never flashes, and so we avoid a
+  // synchronous setState reset inside the effect.
+  const [wikiFor, setWikiFor] = useState<{
+    key: string
+    data: { extract: string; url: string }
+  } | null>(null)
 
   useEffect(() => {
-    setWiki(null)
     const id = selectedId
     const cinfo = id ? getCountryInfo(id) : undefined
     if (!cinfo) return
     let active = true
     const lang = locale === "fr" ? "fr" : "en"
     const title = locale === "fr" ? (cinfo.nameFr ?? cinfo.name) : cinfo.name
+    const key = `${id}:${locale}`
     fetch(
       `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`,
     )
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (active && d?.extract && d.type !== "disambiguation") {
-          setWiki({
-            extract: d.extract,
-            url: d.content_urls?.desktop?.page ?? "",
+          setWikiFor({
+            key,
+            data: {
+              extract: d.extract,
+              url: d.content_urls?.desktop?.page ?? "",
+            },
           })
         }
       })
@@ -345,6 +351,9 @@ const CountryPanel = () => {
       active = false
     }
   }, [selectedId, locale])
+
+  const wiki =
+    wikiFor && wikiFor.key === `${selectedId}:${locale}` ? wikiFor.data : null
 
   const info = selectedId ? getCountryInfo(selectedId) : undefined
   const name = selectedId

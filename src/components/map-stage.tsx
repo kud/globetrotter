@@ -196,12 +196,11 @@ const MapStage = () => {
   const ready = size.width > 0 && size.height > 0
   // Once the globe has been shown it stays mounted (just hidden) so switching
   // back never re-tessellates its 50m 3D geometry — the build happens once.
+  // Adjusting state during render (React's sanctioned latch pattern) avoids
+  // both a setState-in-effect and a ref write during render.
   const [globeMounted, setGlobeMounted] = useState(false)
+  if (view === "globe" && !globeMounted) setGlobeMounted(true)
   useFlightPoller()
-
-  useEffect(() => {
-    if (view === "globe") setGlobeMounted(true)
-  }, [view])
 
   useEffect(() => {
     useTravelStore.getState().autoLocale(detectLocale())

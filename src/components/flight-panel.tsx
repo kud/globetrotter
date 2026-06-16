@@ -55,7 +55,12 @@ const FlightPanel = () => {
   const open = useTravelStore((s) => s.flightOpen)
   const flight = useTravelStore((s) => s.flight)
   const close = () => useTravelStore.getState().closeFlight()
-  const [photo, setPhoto] = useState<Photo | null>(null)
+  // Keyed by hex so switching flights never shows the previous plane's photo,
+  // and we avoid a synchronous setState reset inside the effect.
+  const [photoFor, setPhotoFor] = useState<{
+    hex: string
+    photo: Photo
+  } | null>(null)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -67,19 +72,20 @@ const FlightPanel = () => {
 
   const hex = flight?.id
   useEffect(() => {
-    setPhoto(null)
     if (!hex) return
     let active = true
     fetch(`/api/plane-photo?hex=${hex}`)
       .then((r) => r.json())
       .then((d) => {
-        if (active && d.photo?.src) setPhoto(d.photo)
+        if (active && d.photo?.src) setPhotoFor({ hex, photo: d.photo })
       })
       .catch(() => {})
     return () => {
       active = false
     }
   }, [hex])
+
+  const photo = photoFor && photoFor.hex === hex ? photoFor.photo : null
 
   return (
     <AnimatePresence>

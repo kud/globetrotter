@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import { useEffect, useState } from "react"
+import { useSyncExternalStore } from "react"
 
 export type Status = "visited" | "wishlist" | "blocked"
 export type View = "globe" | "map"
@@ -197,30 +197,30 @@ export const useTravelStore = create<TravelState>()(
   ),
 )
 
-export const useHasHydrated = () => {
-  const [hydrated, setHydrated] = useState(false)
-  useEffect(() => {
-    const unsub = useTravelStore.persist.onFinishHydration(() =>
-      setHydrated(true),
-    )
-    setHydrated(useTravelStore.persist.hasHydrated())
-    return unsub
-  }, [])
-  return hydrated
-}
+export const useHasHydrated = () =>
+  useSyncExternalStore(
+    (onChange) => useTravelStore.persist.onFinishHydration(onChange),
+    () => useTravelStore.persist.hasHydrated(),
+    () => false,
+  )
 
-// Collapses the "system" preference to a concrete theme by watching the OS
-// colour-scheme, updating live when the user changes their system appearance.
+// Subscribes to the OS colour-scheme via useSyncExternalStore, so there's no
+// setState-in-effect and it updates live when the user changes appearance.
+const useSystemDark = () =>
+  useSyncExternalStore(
+    (onChange) => {
+      const mq = window.matchMedia("(prefers-color-scheme: dark)")
+      mq.addEventListener("change", onChange)
+      return () => mq.removeEventListener("change", onChange)
+    },
+    () => window.matchMedia("(prefers-color-scheme: dark)").matches,
+    () => true,
+  )
+
+// Collapses the "system" preference to a concrete theme.
 export const useResolvedTheme = (): ResolvedTheme => {
   const theme = useTravelStore((s) => s.theme)
-  const [systemDark, setSystemDark] = useState(true)
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-color-scheme: dark)")
-    setSystemDark(mq.matches)
-    const onChange = (e: MediaQueryListEvent) => setSystemDark(e.matches)
-    mq.addEventListener("change", onChange)
-    return () => mq.removeEventListener("change", onChange)
-  }, [])
+  const systemDark = useSystemDark()
   if (theme === "system") return systemDark ? "dark" : "light"
   return theme
 }
