@@ -43,7 +43,7 @@ export const buildSaveFile = ({
 }
 
 const isStatus = (value: unknown): value is Status =>
-  value === "visited" || value === "wishlist"
+  value === "visited" || value === "wishlist" || value === "blocked"
 
 export const parseSaveFile = (raw: string): TravelData => {
   const data = JSON.parse(raw) as Partial<SaveFile>

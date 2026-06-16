@@ -34,6 +34,15 @@ export type MapPalette = {
   sphereStroke: string
   polygonStroke: string
   atmosphere: string
+  // Cap fill for the selected country. On the globe this carries the selection
+  // cue that the country's altitude used to (lifting a country forces a costly
+  // geometry rebuild, so selection is now a cheap colour swap instead).
+  selected: string
+  // Crisp, slightly brighter border drawn around the selected country.
+  selectedStroke: string
+  // Ocean/sea label text. The flat map uses the --ink-dim CSS var, but the
+  // globe's 3D sprite labels need a plain colour value.
+  oceanLabel: string
 }
 
 export const MAP_PALETTE: Record<ResolvedTheme, MapPalette> = {
@@ -44,6 +53,9 @@ export const MAP_PALETTE: Record<ResolvedTheme, MapPalette> = {
     sphereStroke: "rgba(120,160,255,0.25)",
     polygonStroke: "#0b1020",
     atmosphere: "#5aa9ff",
+    selected: "#3b82f6",
+    selectedStroke: "#7fb6ff",
+    oceanLabel: "rgba(150,175,225,0.6)",
   },
   light: {
     land: "#e0e5ee",
@@ -52,6 +64,9 @@ export const MAP_PALETTE: Record<ResolvedTheme, MapPalette> = {
     sphereStroke: "rgba(40,70,120,0.28)",
     polygonStroke: "#9aa6ba",
     atmosphere: "#9cc2ff",
+    selected: "#2563eb",
+    selectedStroke: "#93c0ff",
+    oceanLabel: "rgba(70,100,150,0.75)",
   },
 }
 

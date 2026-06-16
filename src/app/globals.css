@@ -71,3 +71,49 @@ body {
     background-color 0.3s ease,
     color 0.3s ease;
 }
+
+/* Shared map loader: ocean waves rolling beneath a bobbing boat. */
+@keyframes wave-shift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes boat-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-5deg);
+  }
+  50% {
+    transform: translateY(-14%) rotate(5deg);
+  }
+}
+
+/* A whale breaching from the sea — rises, arcs, and splashes back under. */
+@keyframes whale-breach {
+  0% {
+    transform: translateY(40%) rotate(-20deg) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    transform: translateY(-35%) rotate(6deg) scale(1);
+    opacity: 1;
+  }
+  55% {
+    transform: translateY(-52%) rotate(20deg) scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(48%) rotate(40deg) scale(0.7);
+    opacity: 0;
+  }
+}
+
+.whale-breach {
+  display: inline-block;
+  animation: whale-breach 3.2s ease-in-out forwards;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}

@@ -16,6 +16,7 @@ import {
   StatusIcon,
   CopyIcon,
   PasteIcon,
+  GlobeIcon,
 } from "@/components/icons"
 
 const Stat = ({ value, label }: { value: string; label: string }) => (
@@ -202,13 +203,14 @@ const Sidebar = () => {
   }
 
   return (
-    <aside className="flex h-full flex-col gap-5 overflow-y-auto border-r border-[var(--border)] bg-[var(--panel)] p-5">
+    <aside className="flex h-full flex-col gap-4 border-r border-[var(--border)] bg-[var(--panel)] p-5">
       <header>
         <p className="text-[0.62rem] font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
           ✦ {t("eyebrow")}
         </p>
-        <h1 className="font-display mt-1 text-[1.7rem] font-semibold leading-none tracking-tight">
-          🌍 Globetrotter
+        <h1 className="font-display mt-1.5 flex items-center gap-2 text-[1.7rem] font-semibold leading-none tracking-tight">
+          <GlobeIcon width={24} height={24} className="text-[var(--accent)]" />
+          Globetrotter
         </h1>
         <p className="font-display mt-1.5 text-sm italic text-[var(--ink-dim)]">
           {t("tagline")}
@@ -227,14 +229,26 @@ const Sidebar = () => {
         <Stat value={hydrated ? `${percent}%` : "—"} label={t("stat.world")} />
       </div>
 
-      <div className="h-2 overflow-hidden rounded-full bg-[var(--panel-2)]">
-        <div
-          className="h-full rounded-full transition-[width] duration-500"
-          style={{
-            width: hydrated ? `${percent}%` : "0%",
-            background: `linear-gradient(90deg, ${STATUS.visited}, var(--accent))`,
-          }}
-        />
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-baseline justify-between text-[0.7rem]">
+          <span className="uppercase tracking-wide text-[var(--ink-dim)]">
+            {t("stat.visited")}
+          </span>
+          <span className="font-semibold tabular-nums text-[var(--ink)]">
+            {hydrated ? `${visited} / ${totalCountries} · ${percent}%` : "—"}
+          </span>
+        </div>
+        <div className="relative h-2.5 rounded-full bg-[var(--panel-2)]">
+          <div
+            className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-500"
+            style={{
+              width: hydrated ? `${percent}%` : "0%",
+              background: "linear-gradient(90deg, #2bff88, #29d3ff)",
+              boxShadow:
+                "0 0 5px rgba(43,255,136,0.75), 0 0 12px rgba(41,211,255,0.55)",
+            }}
+          />
+        </div>
       </div>
 
       {hydrated && ratedCount > 0 && (
@@ -290,7 +304,7 @@ const Sidebar = () => {
         {t("hint")}
       </p>
 
-      <section>
+      <section className="flex min-h-0 flex-1 flex-col">
         <h2 className="mb-2 text-xs uppercase tracking-wide text-[var(--ink-dim)]">
           {t("countries.title")}{" "}
           {hydrated && marked.length > 0 && (
@@ -336,14 +350,14 @@ const Sidebar = () => {
             {t("countries.none")}
           </p>
         )}
-        <div className="relative">
+        <div className="relative flex min-h-0 flex-1 flex-col">
           {edge.top && (
             <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-6 bg-gradient-to-b from-[var(--panel)] to-transparent" />
           )}
           <ul
             ref={listRef}
             onScroll={onListScroll}
-            className="flex max-h-[44vh] flex-col gap-1 overflow-y-auto pr-1"
+            className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pr-1"
           >
             {visible.map((c) => (
               <li

@@ -7,11 +7,13 @@ import { select } from "d3-selection"
 import { zoom as d3zoom, zoomIdentity, type ZoomBehavior } from "d3-zoom"
 import "d3-transition"
 import { countryFeatures, type CountryFeature } from "@/lib/geo"
+import { OCEANS } from "@/lib/oceans"
 import { getCountryInfo, getCapitalLatLng } from "@/lib/country-info"
 import { useTravelStore, useResolvedTheme } from "@/lib/store"
 import { useT, statusKey } from "@/lib/i18n"
 import { PLANE_PATH } from "@/lib/flight"
-import { MAP_PALETTE, statusFill, type MapPalette } from "@/lib/colors"
+import { useWhale } from "@/lib/use-whale"
+import { MAP_PALETTE, STATUS, statusFill, type MapPalette } from "@/lib/colors"
 import { ADVISORY_META } from "@/lib/advisory"
 import { useAdvisoryStore, combinedLevel } from "@/lib/advisory-store"
 import type { Status } from "@/lib/store"
@@ -44,17 +46,6 @@ const RiskMeter = ({ level }: { level: number }) => (
   </span>
 )
 type Transform = { k: number; x: number; y: number }
-
-// Major waters, labelled subtly at sea [lng, lat] for a touch of cartography.
-const OCEANS: { name: string; at: [number, number] }[] = [
-  { name: "Pacific Ocean", at: [-145, 8] },
-  { name: "Pacific Ocean", at: [-120, -30] },
-  { name: "Atlantic Ocean", at: [-38, 28] },
-  { name: "Atlantic Ocean", at: [-18, -32] },
-  { name: "Indian Ocean", at: [80, -28] },
-  { name: "Arctic Ocean", at: [5, 81] },
-  { name: "Mediterranean Sea", at: [17, 36] },
-]
 
 // Five-pointed star centred at the origin — the cartographic mark for a capital.
 const starPath = (outer: number, inner: number) => {
@@ -91,17 +82,35 @@ const CountryPaths = memo(function CountryPaths({
     <>
       {paths.map(({ f, d }) => {
         const selected = f.id === selectedId
+        const status = statuses[f.id]
+        // Subtle textural cue per status: wishlist dashed, blocked dotted (both
+        // in their own colour), visited/selected solid.
+        const patterned =
+          !selected && (status === "wishlist" || status === "blocked")
+        const stroke = selected
+          ? palette.selectedStroke
+          : status === "wishlist" || status === "blocked"
+            ? STATUS[status]
+            : palette.polygonStroke
+        const dash = selected
+          ? undefined
+          : status === "wishlist"
+            ? "3 2.5"
+            : status === "blocked"
+              ? "0.5 3"
+              : undefined
         return (
           <path
             key={f.id}
             d={d}
-            fill={statusFill(statuses[f.id], palette)}
-            stroke={selected ? "var(--accent)" : palette.polygonStroke}
-            strokeWidth={selected ? 1.6 : 0.5}
+            fill={statusFill(status, palette)}
+            stroke={stroke}
+            strokeWidth={selected ? 1.6 : patterned ? 1 : 0.5}
+            strokeDasharray={dash}
             strokeLinejoin="round"
             strokeLinecap="round"
             vectorEffect="non-scaling-stroke"
-            className="cursor-pointer transition-[fill] duration-100"
+            className="cursor-pointer transition-[fill,stroke,stroke-width] duration-300 ease-out"
             onClick={() => onSelect(f.id)}
             onMouseEnter={(e) => onEnter(f, e)}
             onMouseMove={onMove}
@@ -125,6 +134,7 @@ const FlatMap = ({ size }: Props) => {
   const selectCountry = useTravelStore((s) => s.select)
   const [hover, setHover] = useState<Hover | null>(null)
   const [planeHover, setPlaneHover] = useState(false)
+  const whale = useWhale()
   const [t, setT] = useState<Transform>({ k: 1, x: 0, y: 0 })
   const svgRef = useRef<SVGSVGElement>(null)
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null)
@@ -223,6 +233,7 @@ const FlatMap = ({ size }: Props) => {
   if (size.width === 0) return null
 
   const flightPos = flight ? project([flight.lng, flight.lat]) : null
+  const whaleScreen = whale ? project([whale.lng, whale.lat]) : null
   const destPos =
     flight?.destination?.lat != null && flight.destination.lng != null
       ? project([flight.destination.lng, flight.destination.lat])
@@ -339,6 +350,12 @@ const FlatMap = ({ size }: Props) => {
               transform={`translate(${capital.x},${capital.y})${southUp ? " rotate(180)" : ""}`}
               pointerEvents="none"
             >
+              <circle
+                r={7 / t.k}
+                fill="none"
+                stroke="rgba(255,206,77,0.5)"
+                strokeWidth={1.2 / t.k}
+              />
               <path
                 d={starPath(4.6 / t.k, 1.9 / t.k)}
                 fill="#ffce4d"
@@ -422,6 +439,27 @@ const FlatMap = ({ size }: Props) => {
           <strong>✈ {flight.callsign}</strong>
           <span className="ml-2 text-[11px] text-[var(--ink-dim)]">
             {flight.speedKmh} km/h
+          </span>
+        </div>
+      )}
+
+      {whale && whaleScreen && (
+        <div
+          className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-1/2"
+          style={
+            southUp
+              ? {
+                  left: size.width - (t.x + whaleScreen[0] * t.k),
+                  top: size.height - (t.y + whaleScreen[1] * t.k),
+                }
+              : {
+                  left: t.x + whaleScreen[0] * t.k,
+                  top: t.y + whaleScreen[1] * t.k,
+                }
+          }
+        >
+          <span key={whale.key} className="whale-breach block text-2xl">
+            🐋
           </span>
         </div>
       )}

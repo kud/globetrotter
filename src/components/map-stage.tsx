@@ -2,13 +2,14 @@
 
 import dynamic from "next/dynamic"
 import { useEffect, useState } from "react"
-import { AnimatePresence, motion } from "framer-motion"
+import { motion } from "framer-motion"
 import { useTravelStore } from "@/lib/store"
 import { useAdvisoryStore } from "@/lib/advisory-store"
 import { useElementSize } from "@/lib/use-element-size"
 import { useT, LOCALES, detectLocale } from "@/lib/i18n"
 import { useFlightPoller } from "@/lib/flight"
 import FlatMap from "@/components/flat-map"
+import MapLoader from "@/components/map-loader"
 import CountryPanel from "@/components/country-panel"
 import FlightPanel from "@/components/flight-panel"
 import {
@@ -21,6 +22,7 @@ import {
 
 const GlobeView = dynamic(() => import("@/components/globe-view"), {
   ssr: false,
+  loading: () => <MapLoader />,
 })
 
 const ViewToggle = () => {
@@ -34,16 +36,16 @@ const ViewToggle = () => {
   return (
     <div className="inline-flex gap-1 rounded-full bg-[var(--panel)] p-1">
       <button
-        className={`${base} ${view === "globe" ? active : idle}`}
-        onClick={() => setView("globe")}
-      >
-        <GlobeIcon width={16} height={16} /> {t("view.globe")}
-      </button>
-      <button
         className={`${base} ${view === "map" ? active : idle}`}
         onClick={() => setView("map")}
       >
         <MapIcon width={16} height={16} /> {t("view.map")}
+      </button>
+      <button
+        className={`${base} ${view === "globe" ? active : idle}`}
+        onClick={() => setView("globe")}
+      >
+        <GlobeIcon width={16} height={16} /> {t("view.globe")}
       </button>
     </div>
   )
@@ -189,11 +191,17 @@ const Compass = () => {
 }
 
 const MapStage = () => {
-  const t = useT()
   const view = useTravelStore((s) => s.view)
   const [ref, size] = useElementSize<HTMLDivElement>()
   const ready = size.width > 0 && size.height > 0
+  // Once the globe has been shown it stays mounted (just hidden) so switching
+  // back never re-tessellates its 50m 3D geometry — the build happens once.
+  const [globeMounted, setGlobeMounted] = useState(false)
   useFlightPoller()
+
+  useEffect(() => {
+    if (view === "globe") setGlobeMounted(true)
+  }, [view])
 
   useEffect(() => {
     useTravelStore.getState().autoLocale(detectLocale())
@@ -215,28 +223,28 @@ const MapStage = () => {
       </div>
 
       <div ref={ref} className="relative min-h-0 flex-1">
-        {!ready && (
-          <div className="absolute inset-0 grid place-items-center text-sm text-[var(--ink-dim)]">
-            {t("loading")}
-          </div>
-        )}
+        {!ready && <MapLoader />}
         {ready && (
-          <AnimatePresence mode="wait">
+          <>
             <motion.div
-              key={view}
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.25 }}
               className="absolute inset-0"
+              animate={{ opacity: view === "map" ? 1 : 0 }}
+              transition={{ duration: 0.25 }}
+              style={{ pointerEvents: view === "map" ? "auto" : "none" }}
             >
-              {view === "globe" ? (
-                <GlobeView size={size} />
-              ) : (
-                <FlatMap size={size} />
-              )}
+              <FlatMap size={size} />
             </motion.div>
-          </AnimatePresence>
+            {globeMounted && (
+              <motion.div
+                className="absolute inset-0"
+                animate={{ opacity: view === "globe" ? 1 : 0 }}
+                transition={{ duration: 0.25 }}
+                style={{ pointerEvents: view === "globe" ? "auto" : "none" }}
+              >
+                <GlobeView size={size} />
+              </motion.div>
+            )}
+          </>
         )}
       </div>
       <Compass />

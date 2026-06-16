@@ -14,6 +14,42 @@ const Row = ({ label, value }: { label: string; value: string }) => (
   </div>
 )
 
+type AirportLike = { iata?: string; code?: string; name?: string }
+
+// Wikipedia search rather than a direct article URL, since the exact article
+// title varies ("Heathrow Airport" vs "London Heathrow Airport").
+const airportWiki = (a: AirportLike) => {
+  const q = a.name || a.iata || a.code
+  return q
+    ? `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(`${q} airport`)}`
+    : null
+}
+
+const AirportEnd = ({ airport }: { airport: AirportLike }) => {
+  const href = airportWiki(airport)
+  const body = (
+    <>
+      <div className="text-lg font-bold">{airport.iata || airport.code}</div>
+      <div className="truncate text-[10px] text-[var(--ink-dim)]">
+        {airport.name}
+      </div>
+    </>
+  )
+  return href ? (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      title="Open airport on Wikipedia"
+      className="min-w-0 rounded-lg px-1.5 py-0.5 text-center transition-colors hover:bg-[var(--panel-hover)] hover:text-[var(--accent)]"
+    >
+      {body}
+    </a>
+  ) : (
+    <div className="min-w-0 text-center">{body}</div>
+  )
+}
+
 const FlightPanel = () => {
   const t = useT()
   const open = useTravelStore((s) => s.flightOpen)
@@ -116,23 +152,9 @@ const FlightPanel = () => {
 
           {flight.origin && flight.destination && (
             <div className="flex items-center justify-between gap-2 rounded-xl border border-[var(--border)] p-3">
-              <div className="min-w-0 text-center">
-                <div className="text-lg font-bold">
-                  {flight.origin.iata || flight.origin.code}
-                </div>
-                <div className="truncate text-[10px] text-[var(--ink-dim)]">
-                  {flight.origin.name}
-                </div>
-              </div>
+              <AirportEnd airport={flight.origin} />
               <div className="shrink-0 text-[var(--accent)]">✈</div>
-              <div className="min-w-0 text-center">
-                <div className="text-lg font-bold">
-                  {flight.destination.iata || flight.destination.code}
-                </div>
-                <div className="truncate text-[10px] text-[var(--ink-dim)]">
-                  {flight.destination.name}
-                </div>
-              </div>
+              <AirportEnd airport={flight.destination} />
             </div>
           )}
 

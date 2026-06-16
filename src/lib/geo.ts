@@ -1,20 +1,12 @@
 import { feature } from "topojson-client"
 import { geoCentroid } from "d3-geo"
 import type { Feature, Geometry, Position } from "geojson"
-import topology from "world-atlas/countries-50m.json"
+import topology50 from "world-atlas/countries-50m.json"
 
 export type CountryProps = { name: string }
 export type CountryFeature = Feature<Geometry, CountryProps> & { id: string }
 
-const collection = feature(topology, topology.objects.countries) as unknown as {
-  features: CountryFeature[]
-}
-
-const normalized: CountryFeature[] = collection.features
-  .filter((f) => f.id != null && f.properties?.name)
-  // Normalise ISO numeric ids (e.g. "040" -> "40") so they join the bundled
-  // country-info / capitals / advisory datasets, which use unpadded keys.
-  .map((f) => ({ ...f, id: String(parseInt(String(f.id), 10)) }))
+type WorldTopology = typeof topology50
 
 type TerritorySplit = {
   id: string
@@ -167,7 +159,52 @@ const splitTerritories = (features: CountryFeature[]): CountryFeature[] => {
   return out
 }
 
-export const countryFeatures: CountryFeature[] = splitTerritories(normalized)
+// Some source polygons share a normalised id (e.g. Australia and the Ashmore &
+// Cartier Islands are both ISO 036). Merge them into a single feature so ids
+// stay unique — otherwise React list keys collide and id-keyed lookups (status,
+// countryById) silently overwrite one country with another.
+const mergeById = (features: CountryFeature[]): CountryFeature[] => {
+  const byId = new Map<string, CountryFeature>()
+  for (const f of features) {
+    const prev = byId.get(f.id)
+    byId.set(
+      f.id,
+      prev
+        ? {
+            ...prev,
+            geometry: {
+              type: "MultiPolygon",
+              coordinates: [
+                ...toPolygons(prev.geometry),
+                ...toPolygons(f.geometry),
+              ],
+            },
+          }
+        : f,
+    )
+  }
+  return [...byId.values()]
+}
+
+const buildFeatures = (topology: WorldTopology): CountryFeature[] => {
+  const collection = feature(
+    topology,
+    topology.objects.countries,
+  ) as unknown as { features: CountryFeature[] }
+  const normalized = collection.features
+    .filter((f) => f.id != null && f.properties?.name)
+    // Normalise ISO numeric ids (e.g. "040" -> "40") so they join the bundled
+    // country-info / capitals / advisory datasets, which use unpadded keys.
+    .map((f) => ({ ...f, id: String(parseInt(String(f.id), 10)) }))
+    // Drop polygons whose id isn't a number (a handful of unnamed artefacts).
+    .filter((f) => f.id !== "NaN")
+  return mergeById(splitTerritories(normalized))
+}
+
+// 50m detail, shared by the flat map and the globe so coastlines stay crisp in
+// both. The globe extrudes these into 3D once at mount; interaction stays cheap
+// because selection is a colour swap, not an altitude (geometry) change.
+export const countryFeatures: CountryFeature[] = buildFeatures(topology50)
 
 export type Country = { id: string; name: string; centroid: [number, number] }
 

@@ -98,7 +98,7 @@ export const useTravelStore = create<TravelState>()(
       statuses: {},
       notes: {},
       reviews: {},
-      view: "globe",
+      view: "map",
       theme: "system",
       locale: "en",
       localePinned: false,
