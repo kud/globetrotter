@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+:root,
+[data-theme="dark"] {
+  --bg: #0b1020;
+  --panel: #131a30;
+  --panel-2: #1b2440;
+  --panel-hover: #232d4f;
+  --ink: #e8ecf6;
+  --ink-dim: #97a1bd;
+  --ink-faint: #5d678c;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --accent: #5aa9ff;
+  --accent-ink: #06122b;
+  --danger: #ff6b6b;
+  --stage: radial-gradient(circle at 50% 30%, #131d3d 0%, #0b1020 70%);
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --bg: #f4f6fa;
+  --panel: #ffffff;
+  --panel-2: #eef1f7;
+  --panel-hover: #e3e9f2;
+  --ink: #1b2436;
+  --ink-dim: #4c5a74;
+  --ink-faint: #7a899f;
+  --border: rgba(27, 36, 54, 0.14);
+  --border-strong: rgba(27, 36, 54, 0.26);
+  --accent: #2563c9;
+  --accent-ink: #ffffff;
+  --danger: #d22d2d;
+  --stage: radial-gradient(circle at 50% 25%, #fbfcfe 0%, #e6ecf5 78%);
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--ink);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-fraunces);
+}
+
+.font-display {
+  font-family: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  font-optical-sizing: auto;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family:
+    var(--font-sans),
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  overflow: hidden;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
