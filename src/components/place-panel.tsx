@@ -49,18 +49,20 @@ const PlacePanel = () => {
     )
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (active && d?.extract) {
-          setData({
-            key,
-            summary: {
-              extract: d.extract,
-              url: d.content_urls?.desktop?.page ?? "",
-              image: d.thumbnail?.source ?? d.originalimage?.source ?? null,
-            },
-          })
-        }
+        if (!active) return
+        setData({
+          key,
+          summary: {
+            extract: d?.extract ?? "",
+            url: d?.content_urls?.desktop?.page ?? "",
+            image: d?.thumbnail?.source ?? d?.originalimage?.source ?? null,
+          },
+        })
       })
-      .catch(() => {})
+      .catch(() => {
+        if (active)
+          setData({ key, summary: { extract: "", url: "", image: null } })
+      })
     return () => {
       active = false
     }
@@ -127,7 +129,9 @@ const PlacePanel = () => {
           </div>
 
           <p className="text-sm leading-relaxed text-[var(--ink-dim)]">
-            {summary ? summary.extract : "Loading…"}
+            {summary
+              ? summary.extract || "No description available."
+              : "Loading…"}
           </p>
 
           {summary?.url && (
