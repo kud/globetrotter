@@ -51,7 +51,7 @@ export const MAP_PALETTE: Record<ResolvedTheme, MapPalette> = {
     polygonStroke: "#0b1020",
     atmosphere: "#5aa9ff",
     oceanLabel: "rgba(150,175,225,0.6)",
-    ice: "#36425f",
+    ice: "#5a6a90",
   },
   light: {
     land: "#e0e5ee",
@@ -61,7 +61,7 @@ export const MAP_PALETTE: Record<ResolvedTheme, MapPalette> = {
     polygonStroke: "#9aa6ba",
     atmosphere: "#9cc2ff",
     oceanLabel: "rgba(70,100,150,0.75)",
-    ice: "#ebeff7",
+    ice: "#dbe7f6",
   },
 }
 
