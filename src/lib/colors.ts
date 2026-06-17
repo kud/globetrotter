@@ -67,14 +67,14 @@ export const MAP_PALETTE: Record<ResolvedTheme, MapPalette> = {
     // palette: a calm desaturated blue ocean, clean cool-neutral land, soft
     // coastlines, and refined emerald/indigo/coral status fills instead of
     // primary green/violet/red.
-    land: "#ebedf1",
-    ocean: "#cdd9e5",
+    land: "#edeff2",
+    ocean: "#c2d5ec",
     graticule: "rgba(40,80,150,0.1)",
     sphereStroke: "rgba(40,70,120,0.24)",
-    polygonStroke: "#ccd5e0",
+    polygonStroke: "#c8d2e0",
     atmosphere: "#8fb8f0",
-    oceanLabel: "rgba(72,96,134,0.62)",
-    ice: "#dde8f3",
+    oceanLabel: "rgba(66,92,138,0.64)",
+    ice: "#d6e6f6",
     statusVisited: "#2f9e72",
     statusWishlist: "#7d63e8",
     statusBlocked: "#db5a52",
