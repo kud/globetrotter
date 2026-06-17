@@ -115,6 +115,7 @@ const FlatMap = ({ size }: Props) => {
   const selectCountry = useTravelStore((s) => s.select)
   const [hover, setHover] = useState<Hover | null>(null)
   const [planeHover, setPlaneHover] = useState(false)
+  const [issHover, setIssHover] = useState(false)
   const iss = useISS()
   const [t, setT] = useState<Transform>({ k: 1, x: 0, y: 0 })
   const svgRef = useRef<SVGSVGElement>(null)
@@ -370,6 +371,23 @@ const FlatMap = ({ size }: Props) => {
               </text>
             </g>
           )}
+          {iss && issScreen && (
+            <g
+              className="cursor-pointer"
+              style={{
+                transform: `translate(${issScreen[0]}px, ${issScreen[1]}px)`,
+                transition: "transform 4.9s linear",
+              }}
+              onClick={openISS}
+              onMouseEnter={() => setIssHover(true)}
+              onMouseLeave={() => setIssHover(false)}
+            >
+              <g
+                transform={`scale(${1 / t.k})${southUp ? " rotate(180)" : ""} translate(-15,-15)`}
+                dangerouslySetInnerHTML={{ __html: ISS_MARKUP }}
+              />
+            </g>
+          )}
         </g>
       </svg>
 
@@ -421,12 +439,9 @@ const FlatMap = ({ size }: Props) => {
         </div>
       )}
 
-      {iss && issScreen && (
-        <button
-          onClick={openISS}
-          title={`ISS · ${iss.altKm} km · ${iss.speedKmh} km/h`}
-          aria-label="International Space Station"
-          className="absolute z-10 -translate-x-1/2 -translate-y-1/2 cursor-pointer"
+      {iss && issScreen && issHover && (
+        <div
+          className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-[150%] whitespace-nowrap rounded-lg border border-[var(--border-strong)] bg-[var(--panel)] px-2.5 py-1.5 text-[13px] text-[var(--ink)] shadow-lg"
           style={
             southUp
               ? {
@@ -438,8 +453,12 @@ const FlatMap = ({ size }: Props) => {
                   top: t.y + issScreen[1] * t.k,
                 }
           }
-          dangerouslySetInnerHTML={{ __html: ISS_MARKUP }}
-        />
+        >
+          <strong>ISS</strong>
+          <span className="ml-2 text-[11px] text-[var(--ink-dim)]">
+            {iss.altKm} km · {iss.speedKmh} km/h
+          </span>
+        </div>
       )}
     </div>
   )
