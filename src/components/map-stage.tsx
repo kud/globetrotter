@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic"
 import { useEffect, useState } from "react"
+import { AnimatePresence, motion } from "framer-motion"
 import { useTravelStore } from "@/lib/store"
 import { useAdvisoryStore } from "@/lib/advisory-store"
 import { useElementSize } from "@/lib/use-element-size"
@@ -99,31 +100,43 @@ const LanguageSelect = () => {
         {current.short}
         <span className="text-[9px] opacity-70">▼</span>
       </button>
-      {open && (
-        <>
-          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 z-40 mt-1.5 w-44 overflow-hidden rounded-xl border border-[var(--border-strong)] bg-[var(--panel)] py-1 shadow-2xl">
-            {LOCALES.map((l) => (
-              <button
-                key={l.id}
-                onClick={() => {
-                  setLocale(l.id)
-                  setOpen(false)
-                }}
-                className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors hover:bg-[var(--panel-hover)] ${
-                  l.id === locale
-                    ? "font-semibold text-[var(--accent)]"
-                    : "text-[var(--ink)]"
-                }`}
-              >
-                <span className="text-base leading-none">{l.flag}</span>
-                <span className="flex-1">{l.label}</span>
-                {l.id === locale && <span>✓</span>}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
+      <AnimatePresence>
+        {open && (
+          <>
+            <div
+              className="fixed inset-0 z-30"
+              onClick={() => setOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: -6, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.97 }}
+              transition={{ duration: 0.16, ease: "easeOut" }}
+              style={{ transformOrigin: "top right" }}
+              className="absolute right-0 z-40 mt-1.5 w-44 overflow-hidden rounded-xl border border-[var(--border-strong)] bg-[var(--panel)] py-1 shadow-2xl"
+            >
+              {LOCALES.map((l) => (
+                <button
+                  key={l.id}
+                  onClick={() => {
+                    setLocale(l.id)
+                    setOpen(false)
+                  }}
+                  className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors hover:bg-[var(--panel-hover)] ${
+                    l.id === locale
+                      ? "font-semibold text-[var(--accent)]"
+                      : "text-[var(--ink)]"
+                  }`}
+                >
+                  <span className="text-base leading-none">{l.flag}</span>
+                  <span className="flex-1">{l.label}</span>
+                  {l.id === locale && <span>✓</span>}
+                </button>
+              ))}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

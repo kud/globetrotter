@@ -5,8 +5,13 @@ import { countries, countryById } from "@/lib/geo"
 import { getCountryInfo } from "@/lib/country-info"
 import { useT, statusKey } from "@/lib/i18n"
 import { formatVisit } from "@/components/country-panel"
-import { useTravelStore, useHasHydrated, type Status } from "@/lib/store"
-import { STATUS, withAlpha } from "@/lib/colors"
+import {
+  useTravelStore,
+  useHasHydrated,
+  useResolvedTheme,
+  type Status,
+} from "@/lib/store"
+import { STATUS, badgeStyle } from "@/lib/colors"
 import { buildSaveFile, downloadSaveFile, parseSaveFile } from "@/lib/save-file"
 import About from "@/components/about"
 import {
@@ -47,11 +52,11 @@ const MiniStars = ({ rating }: { rating: number }) => (
 
 const StatusTag = ({ status }: { status: Status }) => {
   const t = useT()
-  const color = STATUS[status]
+  const theme = useResolvedTheme()
   return (
     <span
       className="flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wide"
-      style={{ background: withAlpha(color, 0.18), color }}
+      style={badgeStyle(STATUS[status], theme)}
     >
       <StatusIcon status={status} width={11} height={11} />{" "}
       {t(statusKey(status))}
@@ -129,6 +134,16 @@ const Sidebar = () => {
   }, [statuses, notes, reviews])
 
   const percent = Math.min(100, Math.round((visited / WORLD_COUNTRIES) * 100))
+
+  // Animate the progress bar from 0 up to the real value — on load (once
+  // hydrated) and whenever it changes — via a one-frame-delayed fill so the CSS
+  // width/left transition always plays rather than snapping to the value.
+  const [barFill, setBarFill] = useState(0)
+  useEffect(() => {
+    if (!hydrated) return
+    const id = requestAnimationFrame(() => setBarFill(percent))
+    return () => cancelAnimationFrame(id)
+  }, [hydrated, percent])
 
   const visible = useMemo(() => {
     const list = marked.filter((c) => filter === "all" || c.status === filter)
@@ -262,9 +277,9 @@ const Sidebar = () => {
         </div>
         <div className="relative h-2.5 rounded-full bg-[var(--panel-2)]">
           <div
-            className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-500"
+            className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-700 ease-out"
             style={{
-              width: hydrated ? `${percent}%` : "0%",
+              width: `${barFill}%`,
               background: "linear-gradient(90deg, #2bff88, #29d3ff)",
               // Subtle neon — a tight glow that hints "wow" without the blur
               // smearing past the bar.
@@ -275,9 +290,9 @@ const Sidebar = () => {
           {/* A clean white knob marking the current position — "you are here"
               on the journey, with a soft drop shadow and a faint neon halo. */}
           <div
-            className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white transition-[left] duration-500"
+            className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white transition-[left] duration-700 ease-out"
             style={{
-              left: hydrated ? `${percent}%` : "0%",
+              left: `${barFill}%`,
               boxShadow:
                 "0 1px 3px rgba(0,0,0,0.45), 0 0 5px rgba(43,255,136,0.45)",
             }}
@@ -398,7 +413,7 @@ const Sidebar = () => {
             {visible.map((c) => (
               <li
                 key={c.id}
-                className="flex cursor-pointer items-center justify-between gap-2 rounded-lg border border-transparent bg-[var(--panel-2)] px-2.5 py-1.5 text-sm hover:border-[var(--accent)]"
+                className="flex cursor-pointer items-center justify-between gap-2 rounded-lg border border-transparent bg-[var(--panel-2)] px-2.5 py-1.5 text-sm transition-[border-color,background-color,transform] duration-150 ease-out hover:border-[var(--accent)] hover:bg-[var(--panel-hover)] active:translate-y-px"
                 onClick={() => flyTo(c.id)}
               >
                 <span className="flex min-w-0 items-center gap-1.5">

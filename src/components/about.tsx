@@ -36,6 +36,7 @@ const About = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
           >
             <div
               className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -44,10 +45,10 @@ const About = () => {
             <motion.div
               role="dialog"
               aria-modal="true"
-              initial={{ scale: 0.94, y: 8, opacity: 0 }}
+              initial={{ scale: 0.96, y: 6, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.96, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 320, damping: 30 }}
+              exit={{ scale: 0.97, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 520, damping: 34 }}
               className="relative flex w-[min(460px,94vw)] flex-col gap-4 rounded-2xl border border-[var(--border-strong)] bg-[var(--panel)] p-6 shadow-2xl"
             >
               <header>

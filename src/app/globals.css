@@ -74,6 +74,36 @@ body {
     color 0.3s ease;
 }
 
+/* Cohesive micro-interactions: every interactive element eases its hover/focus
+   state and gives a subtle tactile dip on press — no hard snaps anywhere. */
+button,
+a,
+select,
+summary,
+input,
+textarea,
+[role="button"] {
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.2s ease,
+    opacity 0.18s ease,
+    transform 0.12s ease;
+}
+button:active:not(:disabled),
+[role="button"]:active {
+  transform: translateY(0.5px);
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
 /* Shared map loader: ocean waves rolling beneath a bobbing boat. */
 @keyframes wave-shift {
   from {

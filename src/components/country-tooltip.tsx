@@ -3,7 +3,28 @@
 import { ADVISORY_META } from "@/lib/advisory"
 import { useT, statusKey } from "@/lib/i18n"
 import type { Status } from "@/lib/store"
+import { STATUS, badgeStyle } from "@/lib/colors"
+import { useResolvedTheme } from "@/lib/store"
 import { HoverTip } from "@/components/hover-tip"
+
+// The status shown as a small coloured pill (like the sidebar badge) rather
+// than plain text — "Not yet" is a neutral pill.
+const StatusPill = ({ status }: { status: Status | undefined }) => {
+  const t = useT()
+  const theme = useResolvedTheme()
+  return (
+    <span
+      className="ml-2 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+      style={
+        status
+          ? badgeStyle(STATUS[status], theme)
+          : { background: "var(--panel-hover)", color: "var(--ink-dim)" }
+      }
+    >
+      {t(statusKey(status))}
+    </span>
+  )
+}
 
 export type Hover = {
   name: string
@@ -35,19 +56,16 @@ export const RiskMeter = ({ level }: { level: number }) => (
 // Cursor-following country tooltip shared by the flat map and the globe so both
 // hovers look and behave identically.
 export const CountryTooltip = ({ hover }: { hover: Hover }) => {
-  const t = useT()
   return (
     <HoverTip
       style={{ left: hover.x, top: hover.y }}
       extra={hover.level ? <RiskMeter level={hover.level} /> : undefined}
       icon={hover.flag}
       title={
-        <>
+        <span className="inline-flex items-center">
           {hover.name}
-          <span className="ml-2 text-[11px] font-normal text-[var(--ink-dim)]">
-            {t(statusKey(hover.status))}
-          </span>
-        </>
+          <StatusPill status={hover.status} />
+        </span>
       }
       detail={
         hover.capital || hover.subregion

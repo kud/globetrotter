@@ -112,6 +112,25 @@ export const withAlpha = (hex: string, alpha: number) => {
   return `rgba(${r},${g},${b},${alpha})`
 }
 
+// Blend a hex colour toward black by `amount` (0–1).
+export const darken = (hex: string, amount: number) => {
+  const n = parseInt(hex.slice(1), 16)
+  const mix = (c: number) => Math.round(c * (1 - amount))
+  const r = mix((n >> 16) & 255)
+  const g = mix((n >> 8) & 255)
+  const b = mix(n & 255)
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`
+}
+
+// Accessible status-badge styling. The vivid colour reads well on the dark
+// theme's dark-alpha background, but on a light background the same vivid text
+// is too low-contrast — there we keep a soft tint behind a darkened, legible
+// text colour.
+export const badgeStyle = (color: string, theme: ResolvedTheme) =>
+  theme === "light"
+    ? { background: withAlpha(color, 0.15), color: darken(color, 0.42) }
+    : { background: withAlpha(color, 0.18), color }
+
 // Blend a hex colour toward white by `amount` (0–1). Used to brighten the
 // selected country's status fill so selection reads alongside the status hue.
 export const lighten = (hex: string, amount: number) => {
