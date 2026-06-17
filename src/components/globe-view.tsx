@@ -82,7 +82,6 @@ const capitalMarkup = `<svg width="22" height="22" viewBox="0 0 24 24"><circle c
 
 const GlobeView = ({ size }: Props) => {
   const flight = useTravelStore((s) => s.flight)
-  const southUp = useTravelStore((s) => s.southUp)
   const liveSources = useAdvisoryStore((s) => s.sources)
   const globeRef = useRef<GlobeMethods | undefined>(undefined)
   const statuses = useTravelStore((s) => s.statuses)
@@ -284,17 +283,6 @@ const GlobeView = ({ size }: Props) => {
       { timeout: 6000 },
     )
   }, [])
-
-  const southUpMounted = useRef(false)
-  useEffect(() => {
-    // Skip the initial run so it doesn't override the geolocation fly-to; only
-    // respond to actual compass toggles.
-    if (!southUpMounted.current) {
-      southUpMounted.current = true
-      return
-    }
-    globeRef.current?.pointOfView({ lat: southUp ? -40 : 30 }, 800)
-  }, [southUp])
 
   useEffect(() => {
     const controls = globeRef.current?.controls()

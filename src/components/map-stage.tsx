@@ -238,7 +238,7 @@ const MapStage = () => {
           </>
         )}
       </div>
-      <Compass />
+      {view === "map" && <Compass />}
       <CountryPanel />
       <FlightPanel />
       <ISSPanel />
