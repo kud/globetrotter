@@ -21,12 +21,12 @@ const PanelHeader = ({
 }) => (
   <header className="flex items-start justify-between gap-3">
     <div className="min-w-0">
-      <div className="text-3xl leading-none">{icon}</div>
-      <h2 className="font-display mt-2 text-2xl font-semibold leading-tight">
-        {title}
+      <h2 className="font-display flex items-center gap-2 text-2xl font-semibold leading-tight">
+        <span className="shrink-0 text-[1.6rem] leading-none">{icon}</span>
+        <span className="min-w-0">{title}</span>
       </h2>
       {subtitle && (
-        <p className="mt-0.5 text-sm text-[var(--ink-dim)]">{subtitle}</p>
+        <p className="mt-1 text-sm text-[var(--ink-dim)]">{subtitle}</p>
       )}
     </div>
     <button
