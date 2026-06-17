@@ -9,6 +9,8 @@ export type Hover = {
   flag: string
   status: Status | undefined
   level: number | undefined
+  capital: string | null
+  continent: string | null
   x: number
   y: number
 }
@@ -39,13 +41,20 @@ export const CountryTooltip = ({ hover }: { hover: Hover }) => {
       style={{ left: hover.x, top: hover.y }}
     >
       {hover.level && <RiskMeter level={hover.level} />}
-      <span>
-        <strong>
-          {hover.flag} {hover.name}
-        </strong>
-        <span className="ml-2 text-[11px] text-[var(--ink-dim)]">
-          {t(statusKey(hover.status))}
+      <span className="flex flex-col">
+        <span>
+          <strong>
+            {hover.flag} {hover.name}
+          </strong>
+          <span className="ml-2 text-[11px] text-[var(--ink-dim)]">
+            {t(statusKey(hover.status))}
+          </span>
         </span>
+        {(hover.capital || hover.continent) && (
+          <span className="text-[11px] text-[var(--ink-dim)]">
+            {[hover.capital, hover.continent].filter(Boolean).join(" · ")}
+          </span>
+        )}
       </span>
     </div>
   )

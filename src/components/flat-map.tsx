@@ -8,7 +8,11 @@ import { zoom as d3zoom, zoomIdentity, type ZoomBehavior } from "d3-zoom"
 import "d3-transition"
 import { countryFeatures, type CountryFeature } from "@/lib/geo"
 import { OCEANS } from "@/lib/oceans"
-import { getCountryInfo, getCapitalLatLng } from "@/lib/country-info"
+import {
+  getCountryInfo,
+  getCapitalLatLng,
+  continentOf,
+} from "@/lib/country-info"
 import { useTravelStore, useResolvedTheme } from "@/lib/store"
 import { PLANE_PATH } from "@/lib/flight"
 import { useWhale } from "@/lib/use-whale"
@@ -85,7 +89,7 @@ const CountryPaths = memo(function CountryPaths({
             strokeLinejoin="round"
             strokeLinecap="round"
             vectorEffect="non-scaling-stroke"
-            className="cursor-pointer transition-[fill,stroke,stroke-width] duration-300 ease-out"
+            className="cursor-pointer transition-[fill,stroke,stroke-width] duration-150 ease-out"
             onClick={() => onSelect(f.id)}
             onMouseEnter={(e) => onEnter(f, e)}
             onMouseMove={onMove}
@@ -126,6 +130,8 @@ const FlatMap = ({ size }: Props) => {
         flag: getCountryInfo(f.id)?.flag ?? "",
         status: statuses[f.id],
         level: combinedLevel(f.id, liveSources),
+        capital: getCountryInfo(f.id)?.capital ?? null,
+        continent: continentOf(getCountryInfo(f.id)),
         x: e.clientX,
         y: e.clientY,
       }),

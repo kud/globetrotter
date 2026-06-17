@@ -16,12 +16,12 @@ const Row = ({ label, value }: { label: string; value: string }) => (
 
 type AirportLike = { iata?: string; code?: string; name?: string }
 
-// Wikipedia search rather than a direct article URL, since the exact article
-// title varies ("Heathrow Airport" vs "London Heathrow Airport").
+// Direct Wikipedia article for the airport (Wikipedia redirects most title
+// variants); falls back to the IATA/ICAO code when no name is known.
 const airportWiki = (a: AirportLike) => {
-  const q = a.name || a.iata || a.code
+  const q = (a.name || a.iata || a.code)?.trim()
   return q
-    ? `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(`${q} airport`)}`
+    ? `https://en.wikipedia.org/wiki/${encodeURIComponent(q).replace(/%20/g, "_")}`
     : null
 }
 

@@ -254,6 +254,15 @@ const TERRITORY_CAPITALS: Record<string, [number, number]> = {
 export const getCountryInfo = (id: string): CountryInfo | undefined =>
   INFO[id] ?? TERRITORY_INFO[id]
 
+// A human continent label: the region as-is, except "Americas" is split into
+// "North America" / "South America" by subregion (Central America & the
+// Caribbean fall under North America, the standard geographic grouping).
+export const continentOf = (info: CountryInfo | undefined): string | null => {
+  if (!info?.region) return null
+  if (info.region !== "Americas") return info.region
+  return info.subregion?.includes("South") ? "South America" : "North America"
+}
+
 // Real capital-city coordinates [lat, lng] (not the country centroid).
 export const getCapitalLatLng = (id: string): [number, number] | undefined =>
   CAPITALS[id] ?? TERRITORY_CAPITALS[id]

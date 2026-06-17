@@ -176,7 +176,8 @@ export const useTravelStore = create<TravelState>()(
         statuses: state.statuses,
         notes: state.notes,
         reviews: state.reviews,
-        view: state.view,
+        // `view` is intentionally not persisted so the app always opens on the
+        // flat map (the better planning view) rather than the last-used view.
         theme: state.theme,
         locale: state.locale,
         localePinned: state.localePinned,

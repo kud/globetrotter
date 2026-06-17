@@ -214,7 +214,7 @@ const Sidebar = () => {
   }
 
   return (
-    <aside className="flex h-full flex-col gap-4 border-r border-[var(--border)] bg-[var(--panel)] p-5">
+    <aside className="flex h-full flex-col gap-4 overflow-y-auto border-r border-[var(--border)] bg-[var(--panel)] p-5">
       <header>
         <p className="text-[0.62rem] font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
           ✦ {t("eyebrow")}
@@ -368,7 +368,7 @@ const Sidebar = () => {
           <ul
             ref={listRef}
             onScroll={onListScroll}
-            className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pr-1"
+            className="flex min-h-[120px] flex-1 flex-col gap-1 overflow-y-auto pr-1"
           >
             {visible.map((c) => (
               <li
