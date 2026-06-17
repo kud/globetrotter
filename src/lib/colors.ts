@@ -54,18 +54,17 @@ export const MAP_PALETTE: Record<ResolvedTheme, MapPalette> = {
     ice: "#5a6a90",
   },
   light: {
-    // "Dim daylight" map: a muted steel-blue ocean with real presence (not a
-    // washed-out pale blue) against soft grey land, with defined coastlines and
-    // a present atmosphere glow on the globe. Reads rich and calm rather than
-    // bland and clinical, while staying a light theme.
-    land: "#dbe0e9",
-    ocean: "#a7c0db",
-    graticule: "rgba(40,80,150,0.13)",
-    sphereStroke: "rgba(40,70,120,0.3)",
-    polygonStroke: "#9dadc4",
+    // Used only by the flat map (the globe is always dark). Clean modern-maps
+    // palette: a clear light-blue ocean and a clean cool-neutral land with soft
+    // coastlines — recognisable and pleasant, neither washed-out nor garish.
+    land: "#e8ecf2",
+    ocean: "#a6d0ef",
+    graticule: "rgba(40,80,150,0.12)",
+    sphereStroke: "rgba(40,70,120,0.26)",
+    polygonStroke: "#c1ccda",
     atmosphere: "#8fb8f0",
-    oceanLabel: "rgba(52,80,124,0.82)",
-    ice: "#cfe0f2",
+    oceanLabel: "rgba(45,80,125,0.78)",
+    ice: "#d4e8f8",
   },
 }
 

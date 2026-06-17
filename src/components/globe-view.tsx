@@ -16,7 +16,7 @@ import {
   type CountryFeature,
 } from "@/lib/geo"
 import { getCountryInfo, getCapitalLatLng } from "@/lib/country-info"
-import { useTravelStore, useResolvedTheme } from "@/lib/store"
+import { useTravelStore } from "@/lib/store"
 import { MAP_PALETTE, lighten, baseFill } from "@/lib/colors"
 import { OCEANS, oceanTip } from "@/lib/oceans"
 import { LAYERS, KIND_ICON, type TransportPoint } from "@/lib/transport"
@@ -129,7 +129,6 @@ const GlobeView = ({ size }: Props) => {
   const liveSources = useAdvisoryStore((s) => s.sources)
   const globeRef = useRef<GlobeMethods | undefined>(undefined)
   const statuses = useTravelStore((s) => s.statuses)
-  const theme = useResolvedTheme()
   const autoSpin = useTravelStore((s) => s.autoSpin)
   const zoomLocked = useTravelStore((s) => s.zoomLocked)
   const focusId = useTravelStore((s) => s.focusId)
@@ -148,7 +147,10 @@ const GlobeView = ({ size }: Props) => {
   const [rotating, setRotating] = useState(false)
   const mouse = useRef({ x: 0, y: 0 })
 
-  const palette = MAP_PALETTE[theme]
+  // The globe always uses the dark palette in both UI themes — it's a space
+  // object floating in dark space, so a "light globe" looks mismatched. Only
+  // the surrounding chrome (sidebar/header) follows the theme.
+  const palette = MAP_PALETTE.dark
 
   const oceanMaterial = useMemo(
     () => new MeshPhongMaterial({ color: palette.ocean, shininess: 6 }),

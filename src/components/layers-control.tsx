@@ -19,11 +19,8 @@ const LayersControl = () => {
             key={layer.id}
             onClick={() => toggleLayer(layer.id)}
             aria-pressed={on}
-            className="flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm transition-colors"
-            style={{
-              background: on ? `${layer.color}22` : "transparent",
-              color: on ? "var(--ink)" : "var(--ink-dim)",
-            }}
+            className="flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium text-[var(--ink)] transition-colors"
+            style={{ background: on ? `${layer.color}22` : "transparent" }}
           >
             <span
               className="h-2.5 w-2.5 rounded-full border"

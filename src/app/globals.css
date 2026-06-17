@@ -18,22 +18,22 @@
   color-scheme: dark;
 }
 
-/* "Dim daylight": a muted slate canvas with soft off-white panels floating
-   above it — not stark white. Lower glare, more depth, easier on the eyes. */
+/* Clean modern light: white panels floating on a soft cool-grey canvas (depth
+   without glare), a single confident blue accent, refined borders. */
 [data-theme="light"] {
-  --bg: #d6dce6;
-  --panel: #eceff5;
-  --panel-2: #e2e7f0;
-  --panel-hover: #d8dfea;
-  --ink: #1d2636;
-  --ink-dim: #515d76;
-  --ink-faint: #7c899f;
-  --border: rgba(30, 44, 74, 0.13);
-  --border-strong: rgba(30, 44, 74, 0.22);
+  --bg: #e8ebf1;
+  --panel: #ffffff;
+  --panel-2: #eff2f7;
+  --panel-hover: #e6ebf3;
+  --ink: #1b2435;
+  --ink-dim: #586275;
+  --ink-faint: #8a93a3;
+  --border: rgba(22, 32, 56, 0.1);
+  --border-strong: rgba(22, 32, 56, 0.16);
   --accent: #2f6ae0;
   --accent-ink: #ffffff;
-  --danger: #d8443c;
-  --stage: radial-gradient(circle at 50% 18%, #e7ebf2 0%, #cad3e0 85%);
+  --danger: #d83a3a;
+  --stage: radial-gradient(circle at 50% 18%, #f1f4f9 0%, #dde3ed 88%);
   color-scheme: light;
 }
 
