@@ -144,6 +144,8 @@ const GlobeView = ({ size }: Props) => {
   const moon = useMoon()
   const sun = useSun()
   const [hover, setHover] = useState<Hover | null>(null)
+  // True while the globe camera is moving — hides the heavy points layer.
+  const [rotating, setRotating] = useState(false)
   const mouse = useRef({ x: 0, y: 0 })
 
   const palette = MAP_PALETTE[theme]
@@ -206,12 +208,18 @@ const GlobeView = ({ size }: Props) => {
     [],
   )
 
+  // Hidden while the globe is being rotated/zoomed: each of the ~1.2k points is
+  // a separate draw call, which tanks the WebGL frame rate during interaction
+  // (measured ~59→~14fps). They reappear the moment the gesture settles. A
+  // plain click (no rotation) leaves them up, so picking a marker still works.
   const points = useMemo<GlobePoint[]>(
     () =>
-      LAYERS.filter((l) => layerState[l.id]).flatMap((l) =>
-        l.data.map((p) => ({ ...p, color: l.color })),
-      ),
-    [layerState],
+      rotating
+        ? []
+        : LAYERS.filter((l) => layerState[l.id]).flatMap((l) =>
+            l.data.map((p) => ({ ...p, color: l.color })),
+          ),
+    [layerState, rotating],
   )
 
   // The selected country's capital, if known — drives both the name label and
@@ -412,6 +420,25 @@ const GlobeView = ({ size }: Props) => {
     controls.autoRotate = autoSpin
     controls.autoRotateSpeed = 0.6
   }, [autoSpin, size.width])
+
+  // Mark the globe as "rotating" while the OrbitControls camera is changing
+  // (drag, wheel, inertia) so the points layer can hide for a smooth frame
+  // rate. A debounce restores them shortly after motion (incl. damping) stops.
+  useEffect(() => {
+    const controls = globeRef.current?.controls()
+    if (!controls) return
+    let timer: ReturnType<typeof setTimeout>
+    const onChange = () => {
+      setRotating(true)
+      clearTimeout(timer)
+      timer = setTimeout(() => setRotating(false), 150)
+    }
+    controls.addEventListener("change", onChange)
+    return () => {
+      controls.removeEventListener("change", onChange)
+      clearTimeout(timer)
+    }
+  }, [size.width])
 
   // Honour the global zoom-lock: disable the globe's zoom control while locked.
   useEffect(() => {
