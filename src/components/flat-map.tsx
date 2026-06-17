@@ -116,6 +116,8 @@ const FlatMap = ({ size }: Props) => {
   const sunOpen = useTravelStore((s) => s.sunOpen)
   const selectedPlace = useTravelStore((s) => s.place)
   const southUp = useTravelStore((s) => s.southUp)
+  const zoomLocked = useTravelStore((s) => s.zoomLocked)
+  const toggleZoomLock = useTravelStore((s) => s.toggleZoomLock)
   const liveSources = useAdvisoryStore((s) => s.sources)
   const statuses = useTravelStore((s) => s.statuses)
   const theme = useResolvedTheme()
@@ -288,6 +290,20 @@ const FlatMap = ({ size }: Props) => {
       if (raf) cancelAnimationFrame(raf)
     }
   }, [size.width, size.height])
+
+  // Zoom-lock mode: clamp the scale to 1× (no zoom) and snap back to the world
+  // view. Panning still works; only zooming is blocked. Restores the full
+  // 1–24× range when unlocked.
+  useEffect(() => {
+    if (!svgRef.current || !zoomRef.current) return
+    zoomRef.current.scaleExtent(zoomLocked ? [1, 1] : [1, 24])
+    if (zoomLocked) {
+      select(svgRef.current)
+        .transition()
+        .duration(300)
+        .call(zoomRef.current.transform, zoomIdentity)
+    }
+  }, [zoomLocked])
 
   // Recenter on the focused country. A deliberate sidebar pick (focusForce)
   // always flies in and zooms to k=2.5. A plain map-click only recenters when
@@ -675,26 +691,58 @@ const FlatMap = ({ size }: Props) => {
       </svg>
 
       <div className="absolute bottom-4 right-4 flex flex-col gap-1.5">
+        {!zoomLocked && (
+          <>
+            <button
+              onClick={() => zoomBy(1.6)}
+              aria-label="Zoom in"
+              className="grid h-9 w-9 place-items-center rounded-lg border border-[var(--border)] bg-[var(--panel)]/90 text-[var(--ink)] backdrop-blur hover:border-[var(--accent)]"
+            >
+              <PlusIcon />
+            </button>
+            <button
+              onClick={() => zoomBy(1 / 1.6)}
+              aria-label="Zoom out"
+              className="grid h-9 w-9 place-items-center rounded-lg border border-[var(--border)] bg-[var(--panel)]/90 text-[var(--ink)] backdrop-blur hover:border-[var(--accent)]"
+            >
+              <MinusIcon />
+            </button>
+            <button
+              onClick={resetZoom}
+              aria-label="Reset view"
+              className="grid h-9 w-9 place-items-center rounded-lg border border-[var(--border)] bg-[var(--panel)]/90 text-[var(--ink)] backdrop-blur hover:border-[var(--accent)]"
+            >
+              <TargetIcon />
+            </button>
+          </>
+        )}
         <button
-          onClick={() => zoomBy(1.6)}
-          aria-label="Zoom in"
-          className="grid h-9 w-9 place-items-center rounded-lg border border-[var(--border)] bg-[var(--panel)]/90 text-[var(--ink)] backdrop-blur hover:border-[var(--accent)]"
+          onClick={toggleZoomLock}
+          aria-label={zoomLocked ? "Unlock zoom" : "Lock zoom"}
+          title={zoomLocked ? "Zoom locked — click to unlock" : "Lock zoom"}
+          className={`grid h-9 w-9 place-items-center rounded-lg border backdrop-blur ${
+            zoomLocked
+              ? "border-[var(--accent)] bg-[var(--accent)]/15 text-[var(--accent)]"
+              : "border-[var(--border)] bg-[var(--panel)]/90 text-[var(--ink)] hover:border-[var(--accent)]"
+          }`}
         >
-          <PlusIcon />
-        </button>
-        <button
-          onClick={() => zoomBy(1 / 1.6)}
-          aria-label="Zoom out"
-          className="grid h-9 w-9 place-items-center rounded-lg border border-[var(--border)] bg-[var(--panel)]/90 text-[var(--ink)] backdrop-blur hover:border-[var(--accent)]"
-        >
-          <MinusIcon />
-        </button>
-        <button
-          onClick={resetZoom}
-          aria-label="Reset view"
-          className="grid h-9 w-9 place-items-center rounded-lg border border-[var(--border)] bg-[var(--panel)]/90 text-[var(--ink)] backdrop-blur hover:border-[var(--accent)]"
-        >
-          <TargetIcon />
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="5" y="11" width="14" height="9" rx="2" />
+            <path
+              d={
+                zoomLocked ? "M8 11V7a4 4 0 0 1 8 0v4" : "M8 11V7a4 4 0 0 1 8 0"
+              }
+            />
+          </svg>
         </button>
       </div>
 

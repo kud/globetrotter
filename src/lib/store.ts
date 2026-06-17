@@ -70,6 +70,8 @@ export type TravelState = TravelData & {
   autoSpin: boolean
   southUp: boolean
   toggleSouthUp: () => void
+  zoomLocked: boolean
+  toggleZoomLock: () => void
   focusId: string | null
   // True when the current focus came from a deliberate sidebar pick (search or
   // list) — the flat map then always flies in. A plain map-click leaves it
@@ -127,6 +129,7 @@ export const useTravelStore = create<TravelState>()(
       localePinned: false,
       autoSpin: false,
       southUp: false,
+      zoomLocked: false,
       focusId: null,
       focusForce: false,
       selectedId: null,
@@ -182,6 +185,7 @@ export const useTravelStore = create<TravelState>()(
         set((state) => (state.localePinned ? {} : { locale })),
       setAutoSpin: (autoSpin) => set({ autoSpin }),
       toggleSouthUp: () => set((state) => ({ southUp: !state.southUp })),
+      toggleZoomLock: () => set((state) => ({ zoomLocked: !state.zoomLocked })),
       setFlight: (flight) => set({ flight }),
       openFlight: () =>
         set({
@@ -302,6 +306,7 @@ export const useTravelStore = create<TravelState>()(
         locale: state.locale,
         localePinned: state.localePinned,
         autoSpin: state.autoSpin,
+        zoomLocked: state.zoomLocked,
         southUp: state.southUp,
         layers: state.layers,
       }),

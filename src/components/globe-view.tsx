@@ -131,6 +131,7 @@ const GlobeView = ({ size }: Props) => {
   const statuses = useTravelStore((s) => s.statuses)
   const theme = useResolvedTheme()
   const autoSpin = useTravelStore((s) => s.autoSpin)
+  const zoomLocked = useTravelStore((s) => s.zoomLocked)
   const focusId = useTravelStore((s) => s.focusId)
   const selectedId = useTravelStore((s) => s.selectedId)
   const select = useTravelStore((s) => s.select)
@@ -411,6 +412,12 @@ const GlobeView = ({ size }: Props) => {
     controls.autoRotate = autoSpin
     controls.autoRotateSpeed = 0.6
   }, [autoSpin, size.width])
+
+  // Honour the global zoom-lock: disable the globe's zoom control while locked.
+  useEffect(() => {
+    const controls = globeRef.current?.controls()
+    if (controls) controls.enableZoom = !zoomLocked
+  }, [zoomLocked, size.width])
 
   useEffect(() => {
     if (!focusId) return
