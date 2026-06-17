@@ -8,6 +8,7 @@ import { formatVisit } from "@/components/country-panel"
 import { useTravelStore, useHasHydrated, type Status } from "@/lib/store"
 import { STATUS, withAlpha } from "@/lib/colors"
 import { buildSaveFile, downloadSaveFile, parseSaveFile } from "@/lib/save-file"
+import About from "@/components/about"
 import {
   DownloadIcon,
   UploadIcon,
@@ -218,17 +219,24 @@ const Sidebar = () => {
 
   return (
     <aside className="flex h-full flex-col gap-4 overflow-y-auto border-r border-[var(--border)] bg-[var(--panel)] p-5">
-      <header>
-        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
-          ✦ {t("eyebrow")}
-        </p>
-        <h1 className="font-display mt-1.5 flex items-center gap-2 text-[1.7rem] font-semibold leading-none tracking-tight">
-          <GlobeIcon width={24} height={24} className="text-[var(--accent)]" />
-          Globetrotter
-        </h1>
-        <p className="font-display mt-1.5 text-sm italic text-[var(--ink-dim)]">
-          {t("tagline")}
-        </p>
+      <header className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[0.62rem] font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
+            ✦ {t("eyebrow")}
+          </p>
+          <h1 className="font-display mt-1.5 flex items-center gap-2 text-[1.7rem] font-semibold leading-none tracking-tight">
+            <GlobeIcon
+              width={24}
+              height={24}
+              className="text-[var(--accent)]"
+            />
+            Globetrotter
+          </h1>
+          <p className="font-display mt-1.5 text-sm italic text-[var(--ink-dim)]">
+            {t("tagline")}
+          </p>
+        </div>
+        <About />
       </header>
 
       <div className="grid grid-cols-3 gap-2.5">
