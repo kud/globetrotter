@@ -34,6 +34,12 @@ export type MapPalette = {
   sphereStroke: string
   polygonStroke: string
   atmosphere: string
+  // Status fills for the map, per theme — light uses more refined, desaturated
+  // tones (the bright primary green/violet/red read "primitive" on a light map);
+  // the dark theme keeps the vivid STATUS values it was designed around.
+  statusVisited: string
+  statusWishlist: string
+  statusBlocked: string
   // Ocean/sea label text. The flat map uses the --ink-dim CSS var, but the
   // globe's 3D sprite labels need a plain colour value.
   oceanLabel: string
@@ -52,19 +58,26 @@ export const MAP_PALETTE: Record<ResolvedTheme, MapPalette> = {
     atmosphere: "#5aa9ff",
     oceanLabel: "rgba(150,175,225,0.6)",
     ice: "#5a6a90",
+    statusVisited: STATUS.visited,
+    statusWishlist: STATUS.wishlist,
+    statusBlocked: STATUS.blocked,
   },
   light: {
-    // Used only by the flat map (the globe is always dark). Clean modern-maps
-    // palette: a clear light-blue ocean and a clean cool-neutral land with soft
-    // coastlines — recognisable and pleasant, neither washed-out nor garish.
-    land: "#e8ecf2",
-    ocean: "#a6d0ef",
-    graticule: "rgba(40,80,150,0.12)",
-    sphereStroke: "rgba(40,70,120,0.26)",
-    polygonStroke: "#c1ccda",
+    // Used only by the flat map (the globe is always dark). A modern, restrained
+    // palette: a calm desaturated blue ocean, clean cool-neutral land, soft
+    // coastlines, and refined emerald/indigo/coral status fills instead of
+    // primary green/violet/red.
+    land: "#ebedf1",
+    ocean: "#cdd9e5",
+    graticule: "rgba(40,80,150,0.1)",
+    sphereStroke: "rgba(40,70,120,0.24)",
+    polygonStroke: "#ccd5e0",
     atmosphere: "#8fb8f0",
-    oceanLabel: "rgba(45,80,125,0.78)",
-    ice: "#d4e8f8",
+    oceanLabel: "rgba(72,96,134,0.62)",
+    ice: "#dde8f3",
+    statusVisited: "#2f9e72",
+    statusWishlist: "#7d63e8",
+    statusBlocked: "#db5a52",
   },
 }
 
@@ -73,11 +86,11 @@ export const statusFill = (
   palette: MapPalette,
 ) =>
   status === "visited"
-    ? STATUS.visited
+    ? palette.statusVisited
     : status === "wishlist"
-      ? STATUS.wishlist
+      ? palette.statusWishlist
       : status === "blocked"
-        ? STATUS.blocked
+        ? palette.statusBlocked
         : palette.land
 
 // Antarctica (10) and Greenland (304) — rendered icy when statusless.
