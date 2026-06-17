@@ -18,7 +18,7 @@ import {
 import { getCountryInfo, getCapitalLatLng } from "@/lib/country-info"
 import { useTravelStore, useResolvedTheme } from "@/lib/store"
 import { MAP_PALETTE, lighten, baseFill } from "@/lib/colors"
-import { OCEANS } from "@/lib/oceans"
+import { OCEANS, oceanTip } from "@/lib/oceans"
 import { useAdvisoryStore, combinedLevel } from "@/lib/advisory-store"
 import { PLANE_PATH, flightTooltip, type LiveFlight } from "@/lib/flight"
 import { useISS } from "@/lib/use-iss"
@@ -30,6 +30,7 @@ type Props = { size: Size }
 
 type GlobeLabel = {
   text: string
+  tip: string
   lat: number
   lng: number
   color: string
@@ -53,6 +54,11 @@ const labelText = (d: object) => (d as GlobeLabel).text
 const labelColor = (d: object) => (d as GlobeLabel).color
 const labelSize = (d: object) => (d as GlobeLabel).size
 const labelDot = (d: object) => (d as GlobeLabel).dot
+// react-globe.gl renders this HTML string as a hover tooltip on the label.
+const labelLabel = (d: object) => {
+  const l = d as GlobeLabel
+  return `<div style="background:rgba(15,20,32,.92);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:6px 10px;font:600 13px system-ui,sans-serif;color:#eef2f8;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.4)">🌊 ${l.text}<div style="font-weight:400;font-size:11px;opacity:.7;margin-top:1px">${l.tip}</div></div>`
+}
 
 const htmlLat = (d: object) =>
   (d as HtmlItem).kind === "flight"
@@ -140,6 +146,11 @@ const GlobeView = ({ size }: Props) => {
     [select],
   )
 
+  const onLabelClick = useCallback(
+    (d: object) => useTravelStore.getState().openOcean((d as GlobeLabel).text),
+    [],
+  )
+
   // The selected country's capital, if known — drives both the name label and
   // the star icon below.
   const capital = useMemo(() => {
@@ -157,6 +168,7 @@ const GlobeView = ({ size }: Props) => {
     () =>
       OCEANS.map((o) => ({
         text: o.name,
+        tip: oceanTip(o),
         lat: o.at[1],
         lng: o.at[0],
         color: palette.oceanLabel,
@@ -320,6 +332,8 @@ const GlobeView = ({ size }: Props) => {
         labelColor={labelColor}
         labelSize={labelSize}
         labelDotRadius={labelDot}
+        labelLabel={labelLabel}
+        onLabelClick={onLabelClick}
         labelResolution={2}
         labelAltitude={0.013}
         labelsTransitionDuration={0}

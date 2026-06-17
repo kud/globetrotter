@@ -7,7 +7,7 @@ import { select } from "d3-selection"
 import { zoom as d3zoom, zoomIdentity, type ZoomBehavior } from "d3-zoom"
 import "d3-transition"
 import { countryFeatures, countryById, type CountryFeature } from "@/lib/geo"
-import { OCEANS } from "@/lib/oceans"
+import { OCEANS, oceanTip } from "@/lib/oceans"
 import { getCountryInfo, getCapitalLatLng } from "@/lib/country-info"
 import { useTravelStore, useResolvedTheme } from "@/lib/store"
 import { PLANE_PATH } from "@/lib/flight"
@@ -104,9 +104,16 @@ const FlatMap = ({ size }: Props) => {
   const selectedId = useTravelStore((s) => s.selectedId)
   const focusId = useTravelStore((s) => s.focusId)
   const selectCountry = useTravelStore((s) => s.select)
+  const openOcean = useTravelStore((s) => s.openOcean)
   const [hover, setHover] = useState<Hover | null>(null)
   const [planeHover, setPlaneHover] = useState(false)
   const [issHover, setIssHover] = useState(false)
+  const [oceanHover, setOceanHover] = useState<{
+    name: string
+    tip: string
+    x: number
+    y: number
+  } | null>(null)
   const iss = useISS()
   const [t, setT] = useState<Transform>({ k: 1, x: 0, y: 0 })
   const svgRef = useRef<SVGSVGElement>(null)
@@ -157,8 +164,13 @@ const FlatMap = ({ size }: Props) => {
     const path = geoPath(projection)
     const oceans = OCEANS.map((o) => {
       const p = projection(o.at)
-      return p ? { name: o.name, x: p[0], y: p[1] } : null
-    }).filter(Boolean) as { name: string; x: number; y: number }[]
+      return p ? { name: o.name, tip: oceanTip(o), x: p[0], y: p[1] } : null
+    }).filter(Boolean) as {
+      name: string
+      tip: string
+      x: number
+      y: number
+    }[]
     return {
       paths: countryFeatures.map((f) => ({ f, d: path(f) ?? "" })),
       oceans,
@@ -265,11 +277,28 @@ const FlatMap = ({ size }: Props) => {
                 textAnchor="middle"
                 transform={southUp ? `rotate(180 ${o.x} ${o.y})` : undefined}
                 fill="var(--ink-dim)"
+                pointerEvents="auto"
+                onClick={() => openOcean(o.name)}
+                onMouseEnter={(e) =>
+                  setOceanHover({
+                    name: o.name,
+                    tip: o.tip,
+                    x: e.clientX,
+                    y: e.clientY,
+                  })
+                }
+                onMouseMove={(e) =>
+                  setOceanHover((h) =>
+                    h ? { ...h, x: e.clientX, y: e.clientY } : h,
+                  )
+                }
+                onMouseLeave={() => setOceanHover(null)}
                 style={{
                   fontSize: `${11 / t.k}px`,
                   fontStyle: "italic",
                   letterSpacing: `${1.5 / t.k}px`,
                   opacity: 0.7,
+                  cursor: "pointer",
                 }}
               >
                 {o.name}
@@ -378,6 +407,18 @@ const FlatMap = ({ size }: Props) => {
       </div>
 
       {hover && <CountryTooltip hover={hover} />}
+
+      {oceanHover && (
+        <div
+          className="pointer-events-none fixed z-10 flex -translate-x-1/2 -translate-y-[130%] flex-col whitespace-nowrap rounded-lg border border-[var(--border-strong)] bg-[var(--panel)] px-2.5 py-1.5 text-[13px] text-[var(--ink)] shadow-lg"
+          style={{ left: oceanHover.x, top: oceanHover.y }}
+        >
+          <strong>🌊 {oceanHover.name}</strong>
+          <span className="text-[11px] text-[var(--ink-dim)]">
+            {oceanHover.tip}
+          </span>
+        </div>
+      )}
 
       {flight && flightPos && planeHover && (
         <div

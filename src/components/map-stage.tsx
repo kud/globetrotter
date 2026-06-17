@@ -12,6 +12,7 @@ import MapLoader from "@/components/map-loader"
 import CountryPanel from "@/components/country-panel"
 import FlightPanel from "@/components/flight-panel"
 import ISSPanel from "@/components/iss-panel"
+import OceanPanel from "@/components/ocean-panel"
 import {
   GlobeIcon,
   MapIcon,
@@ -242,6 +243,7 @@ const MapStage = () => {
       <CountryPanel />
       <FlightPanel />
       <ISSPanel />
+      <OceanPanel />
     </main>
   )
 }

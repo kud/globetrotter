@@ -74,11 +74,14 @@ export type TravelState = TravelData & {
   flight: LiveFlight | null
   flightOpen: boolean
   issOpen: boolean
+  ocean: string | null
   setFlight: (flight: LiveFlight | null) => void
   openFlight: () => void
   closeFlight: () => void
   openISS: () => void
   closeISS: () => void
+  openOcean: (name: string) => void
+  closeOcean: () => void
   setStatus: (id: string, status: Status | null) => void
   cycle: (id: string) => void
   setNote: (id: string, note: string) => void
@@ -112,6 +115,7 @@ export const useTravelStore = create<TravelState>()(
       flight: null,
       flightOpen: false,
       issOpen: false,
+      ocean: null,
 
       setStatus: (id, status) =>
         set((state) => {
@@ -158,11 +162,29 @@ export const useTravelStore = create<TravelState>()(
       toggleSouthUp: () => set((state) => ({ southUp: !state.southUp })),
       setFlight: (flight) => set({ flight }),
       openFlight: () =>
-        set({ flightOpen: true, issOpen: false, selectedId: null }),
+        set({
+          flightOpen: true,
+          issOpen: false,
+          ocean: null,
+          selectedId: null,
+        }),
       closeFlight: () => set({ flightOpen: false }),
       openISS: () =>
-        set({ issOpen: true, flightOpen: false, selectedId: null }),
+        set({
+          issOpen: true,
+          flightOpen: false,
+          ocean: null,
+          selectedId: null,
+        }),
       closeISS: () => set({ issOpen: false }),
+      openOcean: (ocean) =>
+        set({
+          ocean,
+          flightOpen: false,
+          issOpen: false,
+          selectedId: null,
+        }),
+      closeOcean: () => set({ ocean: null }),
       focus: (focusId) => set({ focusId }),
       select: (selectedId) =>
         set({
@@ -170,6 +192,7 @@ export const useTravelStore = create<TravelState>()(
           focusId: selectedId,
           flightOpen: false,
           issOpen: false,
+          ocean: null,
         }),
       reset: () =>
         set({
