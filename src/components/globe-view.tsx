@@ -253,6 +253,10 @@ const GlobeView = ({ size }: Props) => {
   useEffect(() => {
     const globe = globeRef.current
     if (!globe) return
+    // If a country is already selected, the focus effect centres on it — don't
+    // override that with the geolocation/default fly-to. Geolocation only frames
+    // the globe when nothing is selected.
+    if (useTravelStore.getState().selectedId) return
     // Re-entering the globe: fly straight to the known viewer location.
     if (cachedViewerLatLng) {
       globe.pointOfView({ ...cachedViewerLatLng, altitude: 1.8 }, 0)
