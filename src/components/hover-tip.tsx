@@ -23,7 +23,7 @@ export const HoverTip = ({
   position?: "fixed" | "absolute"
 }) => (
   <div
-    className={`pointer-events-none ${position} z-20 flex -translate-x-1/2 -translate-y-[135%] items-center gap-2 whitespace-nowrap rounded-lg border border-[var(--border-strong)] bg-[var(--panel)] px-2.5 py-1.5 text-[13px] text-[var(--ink)] shadow-lg`}
+    className={`pointer-events-none ${position} z-20 flex -translate-x-1/2 -translate-y-[135%] items-center gap-2.5 whitespace-nowrap rounded-lg border border-[var(--border-strong)] bg-[var(--panel)] px-3.5 py-2.5 text-[13px] text-[var(--ink)] shadow-lg`}
     style={style}
   >
     {extra}

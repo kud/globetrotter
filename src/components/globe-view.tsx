@@ -318,9 +318,9 @@ const GlobeView = ({ size }: Props) => {
       el.style.cursor = "pointer"
       el.style.pointerEvents = "auto"
       el.style.filter = "drop-shadow(0 0 6px rgba(255,200,80,.6))"
-      el.title = "Sun · overhead here"
+      el.title = "Sun · Overhead here"
       el.onclick = () => useTravelStore.getState().openSun()
-      el.innerHTML = `${SUN_DISC}<div class="plane-tip" style="position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:2px;white-space:nowrap;background:var(--panel);color:var(--ink);border:1px solid var(--border-strong);border-radius:8px;padding:4px 8px;box-shadow:0 8px 18px rgba(0,0,0,.35);font:13px var(--font-geist-sans),system-ui,sans-serif"><strong>☀️ Sun</strong><span style="margin-left:6px;color:var(--ink-dim);font-size:11px">overhead here</span></div>`
+      el.innerHTML = `${SUN_DISC}<div class="plane-tip" style="position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:2px;white-space:nowrap;background:var(--panel);color:var(--ink);border:1px solid var(--border-strong);border-radius:8px;padding:4px 8px;box-shadow:0 8px 18px rgba(0,0,0,.35);font:13px var(--font-geist-sans),system-ui,sans-serif"><strong>☀️ Sun</strong><span style="margin-left:6px;color:var(--ink-dim);font-size:11px">Overhead here</span></div>`
       addRing(el, item.selected)
       return el
     }

@@ -8,6 +8,7 @@ import { useT } from "@/lib/i18n"
 import PanelImage from "@/components/panel-image"
 import PanelHeader from "@/components/panel-header"
 import { Stat } from "@/components/panel-stats"
+import Conditions from "@/components/conditions"
 
 type Summary = { extract: string; url: string; image: string | null }
 
@@ -113,6 +114,8 @@ const PlacePanel = () => {
               value={`${place.lat.toFixed(2)}, ${place.lng.toFixed(2)}`}
             />
           </div>
+
+          <Conditions lat={place.lat} lng={place.lng} />
 
           <p className="text-sm leading-relaxed text-[var(--ink-dim)]">
             {summary

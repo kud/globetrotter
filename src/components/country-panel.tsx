@@ -7,6 +7,7 @@ import { useT, dateLocale } from "@/lib/i18n"
 import { countryById } from "@/lib/geo"
 import {
   getCountryInfo,
+  getCapitalLatLng,
   ADVISORY_SOURCES,
   type CountryInfo,
 } from "@/lib/country-info"
@@ -22,6 +23,7 @@ import { StatusIcon } from "@/components/icons"
 import PanelImage from "@/components/panel-image"
 import PanelHeader from "@/components/panel-header"
 import { Fact } from "@/components/panel-stats"
+import Conditions from "@/components/conditions"
 
 const numberFmt = new Intl.NumberFormat("en-US")
 const compactFmt = new Intl.NumberFormat("en-US", {
@@ -361,6 +363,10 @@ const CountryPanel = () => {
   const patchReview = (patch: Parameters<typeof setReview>[1]) => {
     if (selectedId) setReview(selectedId, patch)
   }
+  // Conditions are sampled at the capital (falling back to the country centroid).
+  const capCoord = selectedId ? getCapitalLatLng(selectedId) : null
+  const condLat = capCoord?.[0] ?? info?.latlng?.[0] ?? null
+  const condLng = capCoord?.[1] ?? info?.latlng?.[1] ?? null
 
   // Territories inherit the sovereign country's advisory (feeds are per-country),
   // and the official links point there too.
@@ -558,6 +564,8 @@ const CountryPanel = () => {
               )}
             </section>
           )}
+
+          <Conditions lat={condLat} lng={condLng} />
 
           {wiki && (
             <section className="flex flex-col gap-2">
