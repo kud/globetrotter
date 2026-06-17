@@ -415,8 +415,8 @@ const CountryPanel = () => {
         >
           <header className="flex items-start justify-between gap-3">
             <div>
-              <div className="text-3xl leading-none">{info?.flag}</div>
-              <h2 className="font-display mt-2 text-2xl font-semibold leading-tight">
+              <h2 className="font-display text-2xl font-semibold leading-tight">
+                {info?.flag && <span className="mr-1.5">{info.flag}</span>}
                 {name}
               </h2>
               {info?.subregion && (

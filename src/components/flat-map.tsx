@@ -18,6 +18,7 @@ import { getCountryInfo, getCapitalLatLng } from "@/lib/country-info"
 import { useTravelStore, useResolvedTheme } from "@/lib/store"
 import { PLANE_PATH } from "@/lib/flight"
 import { useISS } from "@/lib/use-iss"
+import { useMoon } from "@/lib/use-moon"
 import { ISS_MARKUP } from "@/lib/iss-mark"
 import {
   MAP_PALETTE,
@@ -103,6 +104,7 @@ const FlatMap = ({ size }: Props) => {
   const flight = useTravelStore((s) => s.flight)
   const openFlight = useTravelStore((s) => s.openFlight)
   const openISS = useTravelStore((s) => s.openISS)
+  const openMoon = useTravelStore((s) => s.openMoon)
   const southUp = useTravelStore((s) => s.southUp)
   const liveSources = useAdvisoryStore((s) => s.sources)
   const statuses = useTravelStore((s) => s.statuses)
@@ -135,6 +137,7 @@ const FlatMap = ({ size }: Props) => {
     y: number
   } | null>(null)
   const iss = useISS()
+  const moon = useMoon()
   const [t, setT] = useState<Transform>({ k: 1, x: 0, y: 0 })
   const svgRef = useRef<SVGSVGElement>(null)
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null)
@@ -318,6 +321,7 @@ const FlatMap = ({ size }: Props) => {
 
   const flightPos = flight ? project([flight.lng, flight.lat]) : null
   const issScreen = iss ? project([iss.lng, iss.lat]) : null
+  const moonScreen = moon ? project([moon.lng, moon.lat]) : null
 
   return (
     <div className="relative h-full w-full">
@@ -516,6 +520,32 @@ const FlatMap = ({ size }: Props) => {
                 transform={`scale(${1 / t.k})${southUp ? " rotate(180)" : ""} translate(-15,-15)`}
                 dangerouslySetInnerHTML={{ __html: ISS_MARKUP }}
               />
+            </g>
+          )}
+          {moon && moonScreen && (
+            <g
+              className="cursor-pointer"
+              style={{
+                transform: `translate(${moonScreen[0]}px, ${moonScreen[1]}px)`,
+                transition: "transform 60s linear",
+              }}
+              onClick={openMoon}
+            >
+              {/* A soft moonlight halo (faint outer glow + bright core) rather
+                  than an emoji — abstract and map-like. Constant screen size. */}
+              <g transform={`scale(${1 / t.k})`}>
+                <circle r={11} fill="#dfe6ff" opacity={0.16} />
+                <circle r={6.5} fill="#eef2ff" opacity={0.4} />
+                <circle
+                  r={3.4}
+                  fill="#fbfcff"
+                  opacity={0.95}
+                  stroke="rgba(110,130,190,0.55)"
+                  strokeWidth={0.6}
+                  paintOrder="stroke"
+                />
+                <title>Moon · {moon.phaseName}</title>
+              </g>
             </g>
           )}
         </g>
