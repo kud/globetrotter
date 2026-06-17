@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { useTravelStore } from "@/lib/store"
 import { useT } from "@/lib/i18n"
+import PanelImage from "@/components/panel-image"
 
 type Photo = { src: string; link: string | null; photographer: string | null }
 
@@ -117,34 +118,31 @@ const FlightPanel = () => {
             </button>
           </header>
 
-          {photo && (
-            <figure className="overflow-hidden rounded-xl border border-[var(--border)]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={photo.src}
-                alt={flight.callsign}
-                className="h-40 w-full object-cover"
-                loading="lazy"
-              />
-              {photo.photographer && (
-                <figcaption className="bg-[var(--panel-2)] px-2.5 py-1 text-[10px] text-[var(--ink-faint)]">
-                  © {photo.photographer} ·{" "}
-                  {photo.link ? (
-                    <a
-                      href={photo.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:underline"
-                    >
-                      Planespotters
-                    </a>
-                  ) : (
-                    "Planespotters"
-                  )}
-                </figcaption>
-              )}
-            </figure>
-          )}
+          <div className="flex flex-col gap-1">
+            <PanelImage
+              key={photo?.src ?? "placeholder"}
+              src={photo?.src ?? null}
+              alt={flight.callsign}
+              placeholder="✈"
+            />
+            {photo?.photographer && (
+              <p className="px-1 text-[10px] text-[var(--ink-faint)]">
+                © {photo.photographer} ·{" "}
+                {photo.link ? (
+                  <a
+                    href={photo.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:underline"
+                  >
+                    Planespotters
+                  </a>
+                ) : (
+                  "Planespotters"
+                )}
+              </p>
+            )}
+          </div>
 
           <span
             className="self-start rounded-full px-2.5 py-0.5 text-xs font-bold"

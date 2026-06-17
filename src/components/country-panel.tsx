@@ -19,6 +19,7 @@ import {
 import { useAdvisoryStore } from "@/lib/advisory-store"
 import { STATUS, withAlpha } from "@/lib/colors"
 import { StatusIcon } from "@/components/icons"
+import PanelImage from "@/components/panel-image"
 
 const numberFmt = new Intl.NumberFormat("en-US")
 const compactFmt = new Intl.NumberFormat("en-US", {
@@ -320,7 +321,7 @@ const CountryPanel = () => {
   // synchronous setState reset inside the effect.
   const [wikiFor, setWikiFor] = useState<{
     key: string
-    data: { extract: string; url: string }
+    data: { extract: string; url: string; image: string | null }
   } | null>(null)
 
   useEffect(() => {
@@ -342,6 +343,7 @@ const CountryPanel = () => {
             data: {
               extract: d.extract,
               url: d.content_urls?.desktop?.page ?? "",
+              image: d.thumbnail?.source ?? d.originalimage?.source ?? null,
             },
           })
         }
@@ -439,6 +441,13 @@ const CountryPanel = () => {
               ✕
             </button>
           </header>
+
+          <PanelImage
+            key={wiki?.image ?? "placeholder"}
+            src={wiki?.image ?? null}
+            alt={name}
+            placeholder={info?.flag ?? "🗺"}
+          />
 
           <div className="grid grid-cols-2 gap-2">
             <StatusButton active={!status} onClick={() => setTo(null)}>

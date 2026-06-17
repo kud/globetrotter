@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { useTravelStore } from "@/lib/store"
 import { KIND_COLOR, KIND_ICON, type TransportPoint } from "@/lib/transport"
+import PanelImage from "@/components/panel-image"
 
 type Summary = { extract: string; url: string; image: string | null }
 
@@ -107,17 +108,12 @@ const PlacePanel = () => {
             </button>
           </header>
 
-          {summary?.image && (
-            <figure className="overflow-hidden rounded-xl border border-[var(--border)]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={summary.image}
-                alt={place.name}
-                className="h-40 w-full object-cover"
-                loading="lazy"
-              />
-            </figure>
-          )}
+          <PanelImage
+            key={summary?.image ?? "placeholder"}
+            src={summary?.image ?? null}
+            alt={place.name}
+            placeholder={KIND_ICON[place.kind]}
+          />
 
           <div className="grid grid-cols-2 gap-2">
             <Stat label="City" value={place.city} />

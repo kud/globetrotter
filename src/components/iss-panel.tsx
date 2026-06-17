@@ -1,10 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { useTravelStore } from "@/lib/store"
 import { useISS } from "@/lib/use-iss"
 import { ISS_MARKUP } from "@/lib/iss-mark"
+import PanelImage from "@/components/panel-image"
 
 // Public-domain NASA photo of the ISS, via Wikimedia's filename-based redirect
 // (no fragile path hash). Falls back gracefully if it ever fails to load.
@@ -22,7 +23,6 @@ const ISSPanel = () => {
   const open = useTravelStore((s) => s.issOpen)
   const close = () => useTravelStore.getState().closeISS()
   const iss = useISS()
-  const [photoOk, setPhotoOk] = useState(true)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -65,21 +65,16 @@ const ISSPanel = () => {
             </button>
           </header>
 
-          {photoOk && (
-            <figure className="overflow-hidden rounded-xl border border-[var(--border)]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={ISS_PHOTO}
-                alt="International Space Station"
-                className="h-40 w-full object-cover"
-                loading="lazy"
-                onError={() => setPhotoOk(false)}
-              />
-              <figcaption className="bg-[var(--panel-2)] px-2.5 py-1 text-[10px] text-[var(--ink-faint)]">
-                © NASA · public domain
-              </figcaption>
-            </figure>
-          )}
+          <div className="flex flex-col gap-1">
+            <PanelImage
+              src={ISS_PHOTO}
+              alt="International Space Station"
+              placeholder="🛰"
+            />
+            <p className="px-1 text-[10px] text-[var(--ink-faint)]">
+              © NASA · public domain
+            </p>
+          </div>
 
           <span
             className="self-start rounded-full px-2.5 py-0.5 text-xs font-bold"
