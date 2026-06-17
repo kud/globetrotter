@@ -73,9 +73,12 @@ export type TravelState = TravelData & {
   selectedId: string | null
   flight: LiveFlight | null
   flightOpen: boolean
+  issOpen: boolean
   setFlight: (flight: LiveFlight | null) => void
   openFlight: () => void
   closeFlight: () => void
+  openISS: () => void
+  closeISS: () => void
   setStatus: (id: string, status: Status | null) => void
   cycle: (id: string) => void
   setNote: (id: string, note: string) => void
@@ -108,6 +111,7 @@ export const useTravelStore = create<TravelState>()(
       selectedId: null,
       flight: null,
       flightOpen: false,
+      issOpen: false,
 
       setStatus: (id, status) =>
         set((state) => {
@@ -153,11 +157,20 @@ export const useTravelStore = create<TravelState>()(
       setAutoSpin: (autoSpin) => set({ autoSpin }),
       toggleSouthUp: () => set((state) => ({ southUp: !state.southUp })),
       setFlight: (flight) => set({ flight }),
-      openFlight: () => set({ flightOpen: true, selectedId: null }),
+      openFlight: () =>
+        set({ flightOpen: true, issOpen: false, selectedId: null }),
       closeFlight: () => set({ flightOpen: false }),
+      openISS: () =>
+        set({ issOpen: true, flightOpen: false, selectedId: null }),
+      closeISS: () => set({ issOpen: false }),
       focus: (focusId) => set({ focusId }),
       select: (selectedId) =>
-        set({ selectedId, focusId: selectedId, flightOpen: false }),
+        set({
+          selectedId,
+          focusId: selectedId,
+          flightOpen: false,
+          issOpen: false,
+        }),
       reset: () =>
         set({
           statuses: {},

@@ -21,8 +21,8 @@ import { MAP_PALETTE, statusFill, lighten } from "@/lib/colors"
 import { OCEANS } from "@/lib/oceans"
 import { useAdvisoryStore, combinedLevel } from "@/lib/advisory-store"
 import { PLANE_PATH, flightTooltip, type LiveFlight } from "@/lib/flight"
-import { useWhale } from "@/lib/use-whale"
-import { WHALE_MARKUP } from "@/lib/whale-mark"
+import { useISS } from "@/lib/use-iss"
+import { ISS_MARKUP } from "@/lib/iss-mark"
 import type { Size } from "@/lib/use-element-size"
 import { CountryTooltip, type Hover } from "@/components/country-tooltip"
 
@@ -37,19 +37,35 @@ type GlobeLabel = {
   dot: number
 }
 
-type FlightArc = {
-  startLat: number
-  startLng: number
-  endLat: number
-  endLng: number
-}
-
 // The single react-globe.gl HTML layer carries both the live plane and the
 // occasional breaching whale, discriminated by `kind`.
 type HtmlItem =
   | { kind: "flight"; flight: LiveFlight }
-  | { kind: "whale"; lat: number; lng: number; key: number }
   | { kind: "capital"; lat: number; lng: number; name: string }
+  | { kind: "iss"; lat: number; lng: number; altKm: number; speedKmh: number }
+
+// Module-level accessors so their identity is stable across re-renders — react
+// -globe.gl re-digests a layer whenever an accessor's reference changes, and the
+// ISS poll re-renders this component every few seconds.
+const labelLat = (d: object) => (d as GlobeLabel).lat
+const labelLng = (d: object) => (d as GlobeLabel).lng
+const labelText = (d: object) => (d as GlobeLabel).text
+const labelColor = (d: object) => (d as GlobeLabel).color
+const labelSize = (d: object) => (d as GlobeLabel).size
+const labelDot = (d: object) => (d as GlobeLabel).dot
+
+const htmlLat = (d: object) =>
+  (d as HtmlItem).kind === "flight"
+    ? (d as { flight: LiveFlight }).flight.lat
+    : (d as { lat: number }).lat
+const htmlLng = (d: object) =>
+  (d as HtmlItem).kind === "flight"
+    ? (d as { flight: LiveFlight }).flight.lng
+    : (d as { lng: number }).lng
+const htmlAltitude = (d: object) => {
+  const kind = (d as HtmlItem).kind
+  return kind === "iss" ? 0.12 : kind === "flight" ? 0.05 : 0.012
+}
 
 // The viewer's coordinates, resolved once and reused so re-entering the globe
 // view never re-prompts for permission or re-runs the fly-to animation.
@@ -75,7 +91,7 @@ const GlobeView = ({ size }: Props) => {
   const focusId = useTravelStore((s) => s.focusId)
   const selectedId = useTravelStore((s) => s.selectedId)
   const select = useTravelStore((s) => s.select)
-  const whale = useWhale()
+  const iss = useISS()
   const [hover, setHover] = useState<Hover | null>(null)
   const mouse = useRef({ x: 0, y: 0 })
 
@@ -156,21 +172,6 @@ const GlobeView = ({ size }: Props) => {
     [palette.oceanLabel],
   )
 
-  // A dashed great-circle arc from the live flight to its destination, mirroring
-  // the flat map's flight path line.
-  const flightArcs = useMemo(() => {
-    const dest = flight?.destination
-    if (!flight || dest?.lat == null || dest?.lng == null) return []
-    return [
-      {
-        startLat: flight.lat,
-        startLng: flight.lng,
-        endLat: dest.lat,
-        endLng: dest.lng,
-      },
-    ]
-  }, [flight])
-
   const htmlItems = useMemo<HtmlItem[]>(() => {
     const items: HtmlItem[] = []
     if (flight) items.push({ kind: "flight", flight })
@@ -181,30 +182,19 @@ const GlobeView = ({ size }: Props) => {
         lng: capital.lng,
         name: capital.name,
       })
-    if (whale)
+    if (iss)
       items.push({
-        kind: "whale",
-        lat: whale.lat,
-        lng: whale.lng,
-        key: whale.key,
+        kind: "iss",
+        lat: iss.lat,
+        lng: iss.lng,
+        altKm: iss.altKm,
+        speedKmh: iss.speedKmh,
       })
     return items
-  }, [flight, capital, whale])
+  }, [flight, capital, iss])
 
   const htmlElement = useCallback((d: object) => {
     const item = d as HtmlItem
-    if (item.kind === "whale") {
-      // react-globe.gl positions this element via its `transform`; the breach
-      // animation must live on an inner element or it overrides the positioning
-      // and the whale flies off into space.
-      const el = document.createElement("div")
-      el.style.pointerEvents = "none"
-      const inner = document.createElement("div")
-      inner.className = "whale-breach"
-      inner.innerHTML = WHALE_MARKUP
-      el.appendChild(inner)
-      return el
-    }
     if (item.kind === "capital") {
       const el = document.createElement("div")
       el.style.pointerEvents = "none"
@@ -215,6 +205,18 @@ const GlobeView = ({ size }: Props) => {
       el.style.filter = "drop-shadow(0 1px 2px rgba(0,0,0,.6))"
       // Name rendered as DOM text (not a sprite label) so accents survive.
       el.innerHTML = `${capitalMarkup}<span style="font:600 12px var(--font-geist-sans),system-ui,sans-serif;color:#ffce4d;text-shadow:0 1px 2px rgba(0,0,0,.7)">${item.name}</span>`
+      return el
+    }
+    if (item.kind === "iss") {
+      const el = document.createElement("div")
+      el.className = "plane-hit"
+      el.style.position = "relative"
+      el.style.padding = "10px"
+      el.style.cursor = "pointer"
+      el.style.pointerEvents = "auto"
+      el.title = `ISS · ${item.altKm} km · ${item.speedKmh} km/h`
+      el.onclick = () => useTravelStore.getState().openISS()
+      el.innerHTML = `${ISS_MARKUP}<div class="plane-tip" style="position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:2px;white-space:nowrap;background:var(--panel);color:var(--ink);border:1px solid var(--border-strong);border-radius:8px;padding:4px 8px;box-shadow:0 8px 18px rgba(0,0,0,.35);font:13px var(--font-geist-sans),system-ui,sans-serif"><strong>ISS</strong><span style="margin-left:6px;color:var(--ink-dim);font-size:11px">${item.altKm} km · ${item.speedKmh} km/h</span></div>`
       return el
     }
     const f = item.flight
@@ -323,44 +325,25 @@ const GlobeView = ({ size }: Props) => {
         polygonsData={globeCountryFeatures}
         polygonAltitude={0.01}
         polygonCapColor={capColor}
-        polygonSideColor={() => "rgba(0,0,0,0)"}
+        polygonSideColor="rgba(0,0,0,0)"
         polygonStrokeColor={palette.polygonStroke}
         onPolygonHover={onPolygonHover}
         onPolygonClick={handleClick}
         polygonsTransitionDuration={150}
         labelsData={labels}
-        labelLat={(d) => (d as GlobeLabel).lat}
-        labelLng={(d) => (d as GlobeLabel).lng}
-        labelText={(d) => (d as GlobeLabel).text}
-        labelColor={(d) => (d as GlobeLabel).color}
-        labelSize={(d) => (d as GlobeLabel).size}
-        labelDotRadius={(d) => (d as GlobeLabel).dot}
+        labelLat={labelLat}
+        labelLng={labelLng}
+        labelText={labelText}
+        labelColor={labelColor}
+        labelSize={labelSize}
+        labelDotRadius={labelDot}
         labelResolution={2}
         labelAltitude={0.013}
         labelsTransitionDuration={0}
-        arcsData={flightArcs}
-        arcStartLat={(d) => (d as FlightArc).startLat}
-        arcStartLng={(d) => (d as FlightArc).startLng}
-        arcEndLat={(d) => (d as FlightArc).endLat}
-        arcEndLng={(d) => (d as FlightArc).endLng}
-        arcColor={() => "#5aa9ff"}
-        arcStroke={0.4}
-        arcDashLength={0.5}
-        arcDashGap={0.18}
-        arcAltitudeAutoScale={0.3}
-        arcsTransitionDuration={0}
         htmlElementsData={htmlItems}
-        htmlLat={(d) =>
-          (d as HtmlItem).kind === "flight"
-            ? (d as { flight: LiveFlight }).flight.lat
-            : (d as { lat: number }).lat
-        }
-        htmlLng={(d) =>
-          (d as HtmlItem).kind === "flight"
-            ? (d as { flight: LiveFlight }).flight.lng
-            : (d as { lng: number }).lng
-        }
-        htmlAltitude={(d) => ((d as HtmlItem).kind === "flight" ? 0.05 : 0.012)}
+        htmlLat={htmlLat}
+        htmlLng={htmlLng}
+        htmlAltitude={htmlAltitude}
         htmlElement={htmlElement}
       />
       {hover && <CountryTooltip hover={hover} />}
