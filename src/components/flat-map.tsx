@@ -6,7 +6,7 @@ import { geoMercator, geoPath } from "d3-geo"
 import { select } from "d3-selection"
 import { zoom as d3zoom, zoomIdentity, type ZoomBehavior } from "d3-zoom"
 import "d3-transition"
-import { countryFeatures, type CountryFeature } from "@/lib/geo"
+import { countryFeatures, countryById, type CountryFeature } from "@/lib/geo"
 import { OCEANS } from "@/lib/oceans"
 import { getCountryInfo, getCapitalLatLng } from "@/lib/country-info"
 import { useTravelStore, useResolvedTheme } from "@/lib/store"
@@ -28,16 +28,6 @@ import { CountryTooltip, type Hover } from "@/components/country-tooltip"
 
 type Props = { size: Size }
 type Transform = { k: number; x: number; y: number }
-
-// Five-pointed star centred at the origin — the cartographic mark for a capital.
-const starPath = (outer: number, inner: number) => {
-  const points = Array.from({ length: 10 }, (_, i) => {
-    const r = i % 2 === 0 ? outer : inner
-    const a = (Math.PI / 5) * i - Math.PI / 2
-    return `${(Math.cos(a) * r).toFixed(2)},${(Math.sin(a) * r).toFixed(2)}`
-  })
-  return `M${points.join("L")}Z`
-}
 
 // Memoised so zoom/pan (which only changes the parent <g> transform) doesn't
 // reconcile ~250 country paths every frame — the main flat-map FPS win.
@@ -112,6 +102,7 @@ const FlatMap = ({ size }: Props) => {
   const statuses = useTravelStore((s) => s.statuses)
   const theme = useResolvedTheme()
   const selectedId = useTravelStore((s) => s.selectedId)
+  const focusId = useTravelStore((s) => s.focusId)
   const selectCountry = useTravelStore((s) => s.select)
   const [hover, setHover] = useState<Hover | null>(null)
   const [planeHover, setPlaneHover] = useState(false)
@@ -209,6 +200,28 @@ const FlatMap = ({ size }: Props) => {
     }
   }, [size.width, size.height])
 
+  // Recenter (and gently zoom) on the focused country — e.g. picked from search.
+  useEffect(() => {
+    if (!focusId || !svgRef.current || !zoomRef.current) return
+    const c = countryById.get(focusId)
+    if (!c) return
+    const p = project(c.centroid)
+    if (!p) return
+    const [x, y] = p
+    const k = 2.5
+    select(svgRef.current)
+      .transition()
+      .duration(700)
+      .call(
+        zoomRef.current.transform,
+        zoomIdentity
+          .translate(size.width / 2 - k * x, size.height / 2 - k * y)
+          .scale(k),
+      )
+    // Pan only when the focused country changes, not on every resize/re-render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusId])
+
   const zoomBy = (factor: number) => {
     if (!svgRef.current || !zoomRef.current) return
     select(svgRef.current)
@@ -301,17 +314,10 @@ const FlatMap = ({ size }: Props) => {
               pointerEvents="none"
             >
               <circle
-                r={7 / t.k}
-                fill="none"
-                stroke="rgba(255,206,77,0.5)"
-                strokeWidth={1.2 / t.k}
-              />
-              <path
-                d={starPath(4.6 / t.k, 1.9 / t.k)}
-                fill="#ffce4d"
+                r={3.5 / t.k}
+                fill="#ffffff"
                 stroke="var(--panel)"
-                strokeWidth={1 / t.k}
-                strokeLinejoin="round"
+                strokeWidth={1.3 / t.k}
                 paintOrder="stroke"
               />
               <text

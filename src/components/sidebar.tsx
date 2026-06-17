@@ -70,6 +70,7 @@ const Sidebar = () => {
   const replaceData = useTravelStore((s) => s.replaceData)
   const fileRef = useRef<HTMLInputElement>(null)
   const [query, setQuery] = useState("")
+  const [searchFocus, setSearchFocus] = useState(false)
   const [copied, setCopied] = useState(false)
   const [pasteOpen, setPasteOpen] = useState(false)
   const [pasteText, setPasteText] = useState("")
@@ -152,7 +153,9 @@ const Sidebar = () => {
 
   const suggestions = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return []
+    // Typing → filtered matches. Focused with no query → the full list, so the
+    // user can browse/scroll to a country without typing.
+    if (!q) return searchFocus ? countries : []
     return countries
       .filter((c) => c.name.toLowerCase().includes(q))
       .sort((a, b) => {
@@ -160,8 +163,8 @@ const Sidebar = () => {
         const bStarts = b.name.toLowerCase().startsWith(q) ? 0 : 1
         return aStarts - bStarts || a.name.localeCompare(b.name)
       })
-      .slice(0, 6)
-  }, [query])
+      .slice(0, 8)
+  }, [query, searchFocus])
 
   const pick = (id: string) => {
     select(id)
@@ -287,12 +290,14 @@ const Sidebar = () => {
               if (e.key === "Enter" && suggestions[0]) pick(suggestions[0].id)
               if (e.key === "Escape") setQuery("")
             }}
+            onFocus={() => setSearchFocus(true)}
+            onBlur={() => window.setTimeout(() => setSearchFocus(false), 150)}
             placeholder={t("search.placeholder")}
             autoComplete="off"
             className="w-full rounded-[10px] border border-[var(--border)] bg-[var(--panel-2)] py-2.5 pl-9 pr-3 text-sm outline-none focus:border-[var(--accent)]"
           />
           {suggestions.length > 0 && (
-            <ul className="absolute left-0 right-0 top-full z-30 mt-1.5 overflow-hidden rounded-[10px] border border-[var(--border-strong)] bg-[var(--panel)] shadow-xl">
+            <ul className="absolute left-0 right-0 top-full z-30 mt-1.5 max-h-[44vh] overflow-y-auto rounded-[10px] border border-[var(--border-strong)] bg-[var(--panel)] shadow-xl">
               {suggestions.map((c) => (
                 <li key={c.id}>
                   <button

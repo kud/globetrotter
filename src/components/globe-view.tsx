@@ -73,12 +73,8 @@ let cachedViewerLatLng: { lat: number; lng: number } | null = null
 
 const DEFAULT_POV = { lat: 25, lng: 10, altitude: 2.4 }
 
-// A five-pointed star inside a thin ring — the cartographic mark for a national
-// capital. Shared shape with the flat map; rendered here as raw SVG for the
-// globe's imperative HTML layer (and deliberately not an emoji).
-const CAPITAL_STAR =
-  "M12 5 L13.7 9.65 L18.66 9.84 L14.76 12.9 L16.12 17.66 L12 14.9 L7.89 17.66 L9.24 12.9 L5.34 9.84 L10.3 9.65 Z"
-const capitalMarkup = `<svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="none" stroke="rgba(255,206,77,0.5)" stroke-width="1.3"/><path d="${CAPITAL_STAR}" fill="#ffce4d" stroke="rgba(0,0,0,0.5)" stroke-width="1" stroke-linejoin="round" paint-order="stroke"/></svg>`
+// A round gold spot — the capital marker (matches the flat map's capital dot).
+const capitalMarkup = `<svg width="14" height="14" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5" fill="#ffffff" stroke="rgba(0,0,0,0.5)" stroke-width="1.2" paint-order="stroke"/></svg>`
 
 const GlobeView = ({ size }: Props) => {
   const flight = useTravelStore((s) => s.flight)
@@ -202,7 +198,7 @@ const GlobeView = ({ size }: Props) => {
       el.style.whiteSpace = "nowrap"
       el.style.filter = "drop-shadow(0 1px 2px rgba(0,0,0,.6))"
       // Name rendered as DOM text (not a sprite label) so accents survive.
-      el.innerHTML = `${capitalMarkup}<span style="font:600 12px var(--font-geist-sans),system-ui,sans-serif;color:#ffce4d;text-shadow:0 1px 2px rgba(0,0,0,.7)">${item.name}</span>`
+      el.innerHTML = `${capitalMarkup}<span style="font:600 12px var(--font-geist-sans),system-ui,sans-serif;color:#ffffff;text-shadow:0 1px 2px rgba(0,0,0,.7)">${item.name}</span>`
       return el
     }
     if (item.kind === "iss") {
