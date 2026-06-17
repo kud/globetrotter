@@ -6,6 +6,7 @@ import { useTravelStore } from "@/lib/store"
 import { useMoon } from "@/lib/use-moon"
 import { phaseEmoji } from "@/lib/moon"
 import PanelImage from "@/components/panel-image"
+import PanelHeader from "@/components/panel-header"
 
 // Public-domain full-Moon photo (Gregory H. Revera) via Wikimedia's filename
 // redirect, so there's no fragile path hash to break.
@@ -45,26 +46,12 @@ const MoonPanel = () => {
           transition={{ type: "spring", stiffness: 320, damping: 34 }}
           className="absolute right-0 top-0 z-20 flex h-full w-[min(360px,92vw)] flex-col gap-4 overflow-y-auto border-l border-[var(--border)] bg-[var(--panel)] p-5 shadow-2xl"
         >
-          <header className="flex items-start justify-between gap-3">
-            <div>
-              <span className="text-3xl leading-none">
-                {moon ? phaseEmoji(moon.phase) : "🌙"}
-              </span>
-              <h2 className="font-display mt-2 text-2xl font-semibold leading-tight">
-                The Moon
-              </h2>
-              <p className="text-sm text-[var(--ink-dim)]">
-                {moon ? moon.phaseName : "Earth's natural satellite"}
-              </p>
-            </div>
-            <button
-              onClick={close}
-              aria-label="Close"
-              className="rounded-lg border border-[var(--border)] px-2.5 py-1 text-[var(--ink-dim)] hover:border-[var(--accent)] hover:text-[var(--ink)]"
-            >
-              ✕
-            </button>
-          </header>
+          <PanelHeader
+            icon={moon ? phaseEmoji(moon.phase) : "🌙"}
+            title="The Moon"
+            subtitle={moon ? moon.phaseName : "Earth's natural satellite"}
+            onClose={close}
+          />
 
           <PanelImage src={MOON_PHOTO} alt="The Moon" placeholder="🌕" />
           <p className="px-1 text-[10px] text-[var(--ink-faint)]">

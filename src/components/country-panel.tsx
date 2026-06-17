@@ -20,6 +20,7 @@ import { useAdvisoryStore } from "@/lib/advisory-store"
 import { STATUS, withAlpha } from "@/lib/colors"
 import { StatusIcon } from "@/components/icons"
 import PanelImage from "@/components/panel-image"
+import PanelHeader from "@/components/panel-header"
 
 const numberFmt = new Intl.NumberFormat("en-US")
 const compactFmt = new Intl.NumberFormat("en-US", {
@@ -413,14 +414,12 @@ const CountryPanel = () => {
           transition={{ type: "spring", stiffness: 320, damping: 34 }}
           className="absolute right-0 top-0 z-20 flex h-full w-[min(360px,92vw)] flex-col gap-5 overflow-y-auto border-l border-[var(--border)] bg-[var(--panel)] p-5 shadow-2xl"
         >
-          <header className="flex items-start justify-between gap-3">
-            <div>
-              <h2 className="font-display text-2xl font-semibold leading-tight">
-                {info?.flag && <span className="mr-1.5">{info.flag}</span>}
-                {name}
-              </h2>
-              {info?.subregion && (
-                <p className="text-sm text-[var(--ink-dim)]">
+          <PanelHeader
+            icon={info?.flag ?? "🗺"}
+            title={name}
+            subtitle={
+              info?.subregion && (
+                <>
                   {info.subregion}
                   {advisoryInfo && info.parent && (
                     <>
@@ -430,17 +429,12 @@ const CountryPanel = () => {
                         : advisoryInfo.name}
                     </>
                   )}
-                </p>
-              )}
-            </div>
-            <button
-              onClick={close}
-              aria-label={t("close")}
-              className="rounded-lg border border-[var(--border)] px-2.5 py-1 text-[var(--ink-dim)] hover:border-[var(--accent)] hover:text-[var(--ink)]"
-            >
-              ✕
-            </button>
-          </header>
+                </>
+              )
+            }
+            onClose={close}
+            closeLabel={t("close")}
+          />
 
           <PanelImage
             key={wiki?.image ?? "placeholder"}

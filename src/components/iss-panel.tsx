@@ -6,6 +6,7 @@ import { useTravelStore } from "@/lib/store"
 import { useISS } from "@/lib/use-iss"
 import { ISS_MARKUP } from "@/lib/iss-mark"
 import PanelImage from "@/components/panel-image"
+import PanelHeader from "@/components/panel-header"
 
 // Public-domain NASA photo of the ISS, via Wikimedia's filename-based redirect
 // (no fragile path hash). Falls back gracefully if it ever fails to load.
@@ -43,27 +44,12 @@ const ISSPanel = () => {
           transition={{ type: "spring", stiffness: 320, damping: 34 }}
           className="absolute right-0 top-0 z-20 flex h-full w-[min(360px,92vw)] flex-col gap-5 overflow-y-auto border-l border-[var(--border)] bg-[var(--panel)] p-5 shadow-2xl"
         >
-          <header className="flex items-start justify-between gap-3">
-            <div>
-              <span
-                className="block"
-                dangerouslySetInnerHTML={{ __html: ISS_MARKUP }}
-              />
-              <h2 className="font-display mt-2 text-2xl font-semibold leading-tight">
-                ISS
-              </h2>
-              <p className="text-sm text-[var(--ink-dim)]">
-                International Space Station
-              </p>
-            </div>
-            <button
-              onClick={close}
-              aria-label="Close"
-              className="rounded-lg border border-[var(--border)] px-2.5 py-1 text-[var(--ink-dim)] hover:border-[var(--accent)] hover:text-[var(--ink)]"
-            >
-              ✕
-            </button>
-          </header>
+          <PanelHeader
+            icon={<span dangerouslySetInnerHTML={{ __html: ISS_MARKUP }} />}
+            title="ISS"
+            subtitle="International Space Station"
+            onClose={close}
+          />
 
           <div className="flex flex-col gap-1">
             <PanelImage

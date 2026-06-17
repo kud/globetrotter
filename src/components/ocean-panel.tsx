@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { useTravelStore } from "@/lib/store"
 import { oceanByName } from "@/lib/oceans"
 import PanelImage from "@/components/panel-image"
+import PanelHeader from "@/components/panel-header"
 
 type Summary = { extract: string; url: string; image: string | null }
 
@@ -75,18 +76,7 @@ const OceanPanel = () => {
           transition={{ type: "spring", stiffness: 320, damping: 34 }}
           className="absolute right-0 top-0 z-20 flex h-full w-[min(360px,92vw)] flex-col gap-4 overflow-y-auto border-l border-[var(--border)] bg-[var(--panel)] p-5 shadow-2xl"
         >
-          <header className="flex items-start justify-between gap-3">
-            <h2 className="font-display text-2xl font-semibold leading-tight">
-              {ocean}
-            </h2>
-            <button
-              onClick={close}
-              aria-label="Close"
-              className="rounded-lg border border-[var(--border)] px-2.5 py-1 text-[var(--ink-dim)] hover:border-[var(--accent)] hover:text-[var(--ink)]"
-            >
-              ✕
-            </button>
-          </header>
+          <PanelHeader icon="🌊" title={ocean} onClose={close} />
 
           <PanelImage
             key={summary?.image ?? "placeholder"}

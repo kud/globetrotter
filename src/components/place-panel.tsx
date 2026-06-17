@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { useTravelStore } from "@/lib/store"
 import { KIND_COLOR, KIND_ICON, type TransportPoint } from "@/lib/transport"
 import PanelImage from "@/components/panel-image"
+import PanelHeader from "@/components/panel-header"
 
 type Summary = { extract: string; url: string; image: string | null }
 
@@ -82,31 +83,25 @@ const PlacePanel = () => {
           transition={{ type: "spring", stiffness: 320, damping: 34 }}
           className="absolute right-0 top-0 z-20 flex h-full w-[min(360px,92vw)] flex-col gap-4 overflow-y-auto border-l border-[var(--border)] bg-[var(--panel)] p-5 shadow-2xl"
         >
-          <header className="flex items-start justify-between gap-3">
-            <div className="flex flex-col gap-1">
-              <span
-                className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide"
-                style={{ color: KIND_COLOR[place.kind] }}
-              >
-                {KIND_ICON[place.kind]} {KIND_LABEL[place.kind]}
+          <PanelHeader
+            icon={
+              <span style={{ color: KIND_COLOR[place.kind] }}>
+                {KIND_ICON[place.kind]}
+              </span>
+            }
+            title={place.name}
+            subtitle={
+              <span className="flex items-center gap-1.5">
+                {KIND_LABEL[place.kind]}
                 {place.code && (
                   <span className="rounded bg-[var(--panel-hover)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--ink)]">
                     {place.code}
                   </span>
                 )}
               </span>
-              <h2 className="font-display text-2xl font-semibold leading-tight">
-                {place.name}
-              </h2>
-            </div>
-            <button
-              onClick={close}
-              aria-label="Close"
-              className="rounded-lg border border-[var(--border)] px-2.5 py-1 text-[var(--ink-dim)] hover:border-[var(--accent)] hover:text-[var(--ink)]"
-            >
-              ✕
-            </button>
-          </header>
+            }
+            onClose={close}
+          />
 
           <PanelImage
             key={summary?.image ?? "placeholder"}
