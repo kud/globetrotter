@@ -23,10 +23,10 @@ const About = () => {
       <button
         onClick={() => setOpen(true)}
         aria-label="About Globetrotter"
-        title="About"
-        className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-[var(--border)] text-xs font-semibold text-[var(--ink-dim)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+        title="About Globetrotter"
+        className="flex h-7 shrink-0 items-center rounded-full border border-[var(--border)] px-2.5 text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-[var(--ink-dim)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
       >
-        ?
+        About
       </button>
 
       <AnimatePresence>
@@ -50,13 +50,16 @@ const About = () => {
               transition={{ type: "spring", stiffness: 320, damping: 30 }}
               className="relative flex w-[min(460px,94vw)] flex-col gap-4 rounded-2xl border border-[var(--border-strong)] bg-[var(--panel)] p-6 shadow-2xl"
             >
-              <header className="flex items-center gap-2.5">
-                <GlobeIcon
-                  width={26}
-                  height={26}
-                  className="text-[var(--accent)]"
-                />
-                <h2 className="font-display text-2xl font-semibold">
+              <header>
+                <p className="text-[0.62rem] font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
+                  ✦ About
+                </p>
+                <h2 className="font-display mt-1.5 flex items-center gap-2.5 text-2xl font-semibold">
+                  <GlobeIcon
+                    width={26}
+                    height={26}
+                    className="text-[var(--accent)]"
+                  />
                   Globetrotter
                 </h2>
               </header>
@@ -68,13 +71,12 @@ const About = () => {
                 </p>
                 <p>
                   It lives between two joys:{" "}
-                  <strong className="text-[var(--ink)]">planning</strong> the
-                  journeys you&apos;ll take, and the{" "}
-                  <strong className="text-[var(--ink)]">knowledge</strong> of
-                  the world you haven&apos;t seen yet. Tag where you&apos;ve
-                  been, dream up where you&apos;re going, and wander the oceans,
-                  airports, the ISS passing overhead and the Moon&apos;s shadow
-                  — just to stay curious.
+                  <strong className="text-[var(--ink)]">planning</strong>
+                  {" the journeys you'll take, and the "}
+                  <strong className="text-[var(--ink)]">knowledge</strong>
+                  {
+                    " of the world you haven't seen yet. Tag where you've been, dream up where you're going, and wander the oceans, airports, the ISS passing overhead and the Moon's shadow — just to stay curious."
+                  }
                 </p>
                 <p>
                   Built with care, for travellers and the endlessly curious
