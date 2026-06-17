@@ -16,7 +16,7 @@ import { ISS_MARKUP } from "@/lib/iss-mark"
 import {
   MAP_PALETTE,
   STATUS,
-  statusFill,
+  baseFill,
   lighten,
   type MapPalette,
 } from "@/lib/colors"
@@ -82,8 +82,8 @@ const CountryPaths = memo(function CountryPaths({
             d={d}
             fill={
               selected
-                ? lighten(statusFill(status, palette), 0.32)
-                : statusFill(status, palette)
+                ? lighten(baseFill(f.id, status, palette), 0.32)
+                : baseFill(f.id, status, palette)
             }
             stroke={stroke}
             strokeWidth={patterned ? 1 : 0.5}
@@ -228,10 +228,6 @@ const FlatMap = ({ size }: Props) => {
 
   const flightPos = flight ? project([flight.lng, flight.lat]) : null
   const issScreen = iss ? project([iss.lng, iss.lat]) : null
-  const destPos =
-    flight?.destination?.lat != null && flight.destination.lng != null
-      ? project([flight.destination.lng, flight.destination.lat])
-      : null
 
   return (
     <div className="relative h-full w-full">
@@ -278,66 +274,26 @@ const FlatMap = ({ size }: Props) => {
             onLeave={onLeave}
           />
           {flight && flightPos && (
-            <>
-              {destPos ? (
-                <line
-                  x1={flightPos[0]}
-                  y1={flightPos[1]}
-                  x2={destPos[0]}
-                  y2={destPos[1]}
-                  stroke="var(--accent)"
-                  strokeWidth={1.2}
-                  strokeDasharray="2 5"
-                  strokeLinecap="round"
-                  vectorEffect="non-scaling-stroke"
-                  opacity={0.55}
-                  pointerEvents="none"
-                />
-              ) : null}
-              {destPos ? (
-                <circle
-                  cx={destPos[0]}
-                  cy={destPos[1]}
-                  r={3 / t.k}
-                  fill="var(--accent)"
-                  pointerEvents="none"
-                />
-              ) : null}
-              <g
-                transform={`translate(${flightPos[0]},${flightPos[1]}) rotate(${flight.heading})`}
-                style={{ cursor: "pointer" }}
-                onMouseEnter={() => setPlaneHover(true)}
-                onMouseLeave={() => setPlaneHover(false)}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  openFlight()
-                }}
-              >
-                {!destPos && (
-                  <line
-                    x1={0}
-                    y1={-7 / t.k}
-                    x2={0}
-                    y2={-72 / t.k}
-                    stroke="var(--accent)"
-                    strokeWidth={1.2}
-                    strokeDasharray="2 5"
-                    strokeLinecap="round"
-                    vectorEffect="non-scaling-stroke"
-                    opacity={0.55}
-                  />
-                )}
-                <circle r={11 / t.k} fill="transparent" />
-                <path
-                  d={PLANE_PATH}
-                  transform={`scale(${1.05 / t.k}) translate(-12,-12)`}
-                  fill="#ffffff"
-                  stroke="var(--ink)"
-                  strokeWidth={0.5 / t.k}
-                  paintOrder="stroke"
-                />
-              </g>
-            </>
+            <g
+              transform={`translate(${flightPos[0]},${flightPos[1]}) rotate(${flight.heading})`}
+              style={{ cursor: "pointer" }}
+              onMouseEnter={() => setPlaneHover(true)}
+              onMouseLeave={() => setPlaneHover(false)}
+              onClick={(e) => {
+                e.stopPropagation()
+                openFlight()
+              }}
+            >
+              <circle r={11 / t.k} fill="transparent" />
+              <path
+                d={PLANE_PATH}
+                transform={`scale(${1.05 / t.k}) translate(-12,-12)`}
+                fill="#ffffff"
+                stroke="var(--ink)"
+                strokeWidth={0.5 / t.k}
+                paintOrder="stroke"
+              />
+            </g>
           )}
           {capital && (
             <g

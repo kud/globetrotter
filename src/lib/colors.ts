@@ -37,6 +37,9 @@ export type MapPalette = {
   // Ocean/sea label text. The flat map uses the --ink-dim CSS var, but the
   // globe's 3D sprite labels need a plain colour value.
   oceanLabel: string
+  // Pale icy fill for the permanently ice-covered polar land (Antarctica,
+  // Greenland) when they have no travel status.
+  ice: string
 }
 
 export const MAP_PALETTE: Record<ResolvedTheme, MapPalette> = {
@@ -48,6 +51,7 @@ export const MAP_PALETTE: Record<ResolvedTheme, MapPalette> = {
     polygonStroke: "#0b1020",
     atmosphere: "#5aa9ff",
     oceanLabel: "rgba(150,175,225,0.6)",
+    ice: "#9fb2d6",
   },
   light: {
     land: "#e0e5ee",
@@ -57,6 +61,7 @@ export const MAP_PALETTE: Record<ResolvedTheme, MapPalette> = {
     polygonStroke: "#9aa6ba",
     atmosphere: "#9cc2ff",
     oceanLabel: "rgba(70,100,150,0.75)",
+    ice: "#eef4fc",
   },
 }
 
@@ -71,6 +76,17 @@ export const statusFill = (
       : status === "blocked"
         ? STATUS.blocked
         : palette.land
+
+// Antarctica (10) and Greenland (304) — rendered icy when statusless.
+const POLAR_IDS = new Set(["10", "304"])
+
+// Base map fill: status colour if set, else an icy tone for polar land, else
+// the normal land colour. Used by both the flat map and the globe.
+export const baseFill = (
+  id: string,
+  status: Status | null | undefined,
+  palette: MapPalette,
+) => (!status && POLAR_IDS.has(id) ? palette.ice : statusFill(status, palette))
 
 export const withAlpha = (hex: string, alpha: number) => {
   const n = parseInt(hex.slice(1), 16)

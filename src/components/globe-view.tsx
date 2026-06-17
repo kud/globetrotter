@@ -17,7 +17,7 @@ import {
 } from "@/lib/geo"
 import { getCountryInfo, getCapitalLatLng } from "@/lib/country-info"
 import { useTravelStore, useResolvedTheme } from "@/lib/store"
-import { MAP_PALETTE, statusFill, lighten } from "@/lib/colors"
+import { MAP_PALETTE, lighten, baseFill } from "@/lib/colors"
 import { OCEANS } from "@/lib/oceans"
 import { useAdvisoryStore, combinedLevel } from "@/lib/advisory-store"
 import { PLANE_PATH, flightTooltip, type LiveFlight } from "@/lib/flight"
@@ -107,9 +107,8 @@ const GlobeView = ({ size }: Props) => {
   const capColor = useCallback(
     (d: object) => {
       const f = d as CountryFeature
-      const fill = statusFill(statuses[f.id], palette)
-      // Selection keeps the status colour (so you still see visited/blocked/etc.)
-      // but brightened; the accent stroke completes the cue.
+      const fill = baseFill(f.id, statuses[f.id], palette)
+      // Selection keeps the status/ice colour but brightened.
       return f.id === selectedId ? lighten(fill, 0.32) : fill
     },
     [statuses, selectedId, palette],
