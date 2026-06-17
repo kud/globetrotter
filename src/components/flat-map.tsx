@@ -190,15 +190,25 @@ const FlatMap = ({ size }: Props) => {
   useEffect(() => {
     if (!svgRef.current) return
     const svg = select(svgRef.current)
+    // Coalesce zoom/pan events to one state update per animation frame — d3-zoom
+    // can fire faster than 60/s on a trackpad, and each setT re-renders.
+    let raf = 0
+    let next: Transform | null = null
     const behavior = d3zoom<SVGSVGElement, unknown>()
       .scaleExtent([1, 9])
-      .on("zoom", (e) =>
-        setT({ k: e.transform.k, x: e.transform.x, y: e.transform.y }),
-      )
+      .on("zoom", (e) => {
+        next = { k: e.transform.k, x: e.transform.x, y: e.transform.y }
+        if (raf) return
+        raf = requestAnimationFrame(() => {
+          raf = 0
+          if (next) setT(next)
+        })
+      })
     zoomRef.current = behavior
     svg.call(behavior)
     return () => {
       svg.on(".zoom", null)
+      if (raf) cancelAnimationFrame(raf)
     }
   }, [size.width, size.height])
 

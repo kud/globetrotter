@@ -230,6 +230,9 @@ const GlobeView = ({ size }: Props) => {
     el.title = flightTooltip(f)
     el.style.color = "#ffffff"
     el.style.cursor = "pointer"
+    // Opt in to pointer events so the click hits the plane (opens the flight
+    // panel) instead of falling through to the globe's polygon click.
+    el.style.pointerEvents = "auto"
     el.onclick = () => useTravelStore.getState().openFlight()
     // The plane art points north (up). On a sphere, screen-up isn't local north,
     // so derive the on-screen travel direction from two projected points (the
