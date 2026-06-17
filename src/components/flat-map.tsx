@@ -159,6 +159,9 @@ const FlatMap = ({ size }: Props) => {
   const tkRef = useRef(t.k)
   const svgRef = useRef<SVGSVGElement>(null)
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null)
+  // True while a pan/zoom gesture is in progress — transport markers are hidden
+  // then so ~1.1k circles don't re-render every frame (big FPS win).
+  const [interacting, setInteracting] = useState(false)
 
   const palette = MAP_PALETTE[theme]
 
@@ -247,6 +250,9 @@ const FlatMap = ({ size }: Props) => {
   // and clusters naturally split back into individual markers.
   type Place = (typeof places)[number]
   const clusters = useMemo(() => {
+    // Skip entirely during an active gesture — markers aren't rendered then, so
+    // neither the O(n) clustering nor the ~1.1k circles cost anything per frame.
+    if (interacting || places.length === 0) return []
     const thr = 18 / t.k
     const thr2 = thr * thr
     // Spatial-grid bucketing (cell = threshold) so each point only compares
@@ -287,7 +293,7 @@ const FlatMap = ({ size }: Props) => {
       out.push({ x: members[0].x, y: members[0].y, members })
     }
     return out
-  }, [places, t.k])
+  }, [places, t.k, interacting])
 
   useEffect(() => {
     if (!svgRef.current) return
@@ -300,12 +306,19 @@ const FlatMap = ({ size }: Props) => {
       .scaleExtent([1, 24])
       .on("zoom", (e) => {
         next = { k: e.transform.k, x: e.transform.x, y: e.transform.y }
+        // Mark the gesture active on the first movement (not on "start", so a
+        // plain click on a marker doesn't unmount it before the click lands).
+        // While active, transport markers aren't rendered — re-rendering ~1.1k
+        // circles whose radius tracks the zoom every frame halved the FPS
+        // (measured ~59→~32). They reappear the instant the gesture settles.
+        setInteracting(true)
         if (raf) return
         raf = requestAnimationFrame(() => {
           raf = 0
           if (next) setT(next)
         })
       })
+      .on("end", () => setInteracting(false))
     zoomRef.current = behavior
     svg.call(behavior)
     return () => {
