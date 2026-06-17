@@ -109,6 +109,7 @@ const FlatMap = ({ size }: Props) => {
   const theme = useResolvedTheme()
   const selectedId = useTravelStore((s) => s.selectedId)
   const focusId = useTravelStore((s) => s.focusId)
+  const focusForce = useTravelStore((s) => s.focusForce)
   const selectCountry = useTravelStore((s) => s.select)
   const openOcean = useTravelStore((s) => s.openOcean)
   const openPlace = useTravelStore((s) => s.openPlace)
@@ -272,19 +273,19 @@ const FlatMap = ({ size }: Props) => {
     }
   }, [size.width, size.height])
 
-  // Recenter on the focused country — but only when already zoomed in. At the
-  // full world view (k≈1) selecting a country shouldn't yank the map around;
-  // we keep the overview and just colour/panel it. When zoomed, we pan to keep
-  // the country in frame at the *current* zoom rather than forcing a new level.
+  // Recenter on the focused country. A deliberate sidebar pick (focusForce)
+  // always flies in and zooms to k=2.5. A plain map-click only recenters when
+  // already zoomed in — at the full world view it leaves the overview alone and
+  // pans at the *current* zoom rather than forcing a new level.
   useEffect(() => {
     if (!focusId || !svgRef.current || !zoomRef.current) return
-    if (t.k <= 1.05) return
     const c = countryById.get(focusId)
     if (!c) return
     const p = project(c.centroid)
     if (!p) return
     const [x, y] = p
-    const k = t.k
+    if (!focusForce && t.k <= 1.05) return
+    const k = focusForce ? 2.5 : t.k
     select(svgRef.current)
       .transition()
       .duration(700)

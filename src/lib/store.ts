@@ -71,6 +71,10 @@ export type TravelState = TravelData & {
   southUp: boolean
   toggleSouthUp: () => void
   focusId: string | null
+  // True when the current focus came from a deliberate sidebar pick (search or
+  // list) — the flat map then always flies in. A plain map-click leaves it
+  // false, so the flat map only recenters when already zoomed.
+  focusForce: boolean
   selectedId: string | null
   flight: LiveFlight | null
   flightOpen: boolean
@@ -100,6 +104,7 @@ export type TravelState = TravelData & {
   setAutoSpin: (on: boolean) => void
   focus: (id: string | null) => void
   select: (id: string | null) => void
+  flyTo: (id: string) => void
   reset: () => void
   replaceData: (data: TravelData) => void
 }
@@ -117,6 +122,7 @@ export const useTravelStore = create<TravelState>()(
       autoSpin: false,
       southUp: false,
       focusId: null,
+      focusForce: false,
       selectedId: null,
       flight: null,
       flightOpen: false,
@@ -214,6 +220,17 @@ export const useTravelStore = create<TravelState>()(
         set({
           selectedId,
           focusId: selectedId,
+          focusForce: false,
+          flightOpen: false,
+          issOpen: false,
+          ocean: null,
+          place: null,
+        }),
+      flyTo: (id) =>
+        set({
+          selectedId: id,
+          focusId: id,
+          focusForce: true,
           flightOpen: false,
           issOpen: false,
           ocean: null,

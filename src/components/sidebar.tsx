@@ -65,7 +65,7 @@ const Sidebar = () => {
   const notes = useTravelStore((s) => s.notes)
   const reviews = useTravelStore((s) => s.reviews)
   const cycle = useTravelStore((s) => s.cycle)
-  const select = useTravelStore((s) => s.select)
+  const flyTo = useTravelStore((s) => s.flyTo)
   const reset = useTravelStore((s) => s.reset)
   const replaceData = useTravelStore((s) => s.replaceData)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -167,7 +167,7 @@ const Sidebar = () => {
   }, [query, searchFocus])
 
   const pick = (id: string) => {
-    select(id)
+    flyTo(id)
     setQuery("")
   }
 
@@ -379,7 +379,7 @@ const Sidebar = () => {
               <li
                 key={c.id}
                 className="flex cursor-pointer items-center justify-between gap-2 rounded-lg border border-transparent bg-[var(--panel-2)] px-2.5 py-1.5 text-sm hover:border-[var(--accent)]"
-                onClick={() => select(c.id)}
+                onClick={() => flyTo(c.id)}
               >
                 <span className="flex min-w-0 items-center gap-1.5">
                   <span className="truncate">
