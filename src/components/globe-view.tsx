@@ -372,7 +372,9 @@ const GlobeView = ({ size }: Props) => {
         onPointClick={onPointClick}
         pointAltitude={0.012}
         pointRadius={0.32}
-        pointResolution={6}
+        // Minimal cylinder facets — at this dot size it's visually identical
+        // but cuts vertex work when the ~1.2k-airport layer is on.
+        pointResolution={4}
         pointsTransitionDuration={0}
         htmlElementsData={htmlItems}
         htmlLat={htmlLat}
