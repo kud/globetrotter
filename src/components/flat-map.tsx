@@ -323,6 +323,19 @@ const FlatMap = ({ size }: Props) => {
   const issScreen = iss ? project([iss.lng, iss.lat]) : null
   const moonScreen = moon ? project([moon.lng, moon.lat]) : null
 
+  // Infinite horizontal wrap: one world is exactly `size.width` wide, so we tile
+  // copies of the base map at ±world offsets. Render only the copies the
+  // viewport actually spans (usually 1–2) — derived from the current pan/zoom —
+  // so panning across the antimeridian is seamless without a wall of blank.
+  const worldW = size.width
+  // The −0.5 epsilon stops a copy whose left edge sits exactly on the viewport's
+  // right edge (e.g. at the untouched origin) from rendering fully off-screen.
+  const firstCopy = Math.floor(-t.x / t.k / worldW)
+  const lastCopy = Math.floor((size.width - 0.5 - t.x) / t.k / worldW)
+  const copies: number[] = []
+  for (let i = firstCopy; i <= lastCopy && copies.length < 5; i++)
+    copies.push(i)
+
   return (
     <div className="relative h-full w-full">
       <svg
@@ -337,127 +350,161 @@ const FlatMap = ({ size }: Props) => {
         <g
           transform={`${southUp ? `rotate(180 ${size.width / 2} ${size.height / 2}) ` : ""}translate(${t.x},${t.y}) scale(${t.k})`}
         >
-          <g pointerEvents="none">
-            {oceans.map((o) => (
-              <text
-                key={`${o.name}-${o.x.toFixed(0)}`}
-                x={o.x}
-                y={o.y}
-                textAnchor="middle"
-                transform={southUp ? `rotate(180 ${o.x} ${o.y})` : undefined}
-                fill="var(--ink-dim)"
-                pointerEvents="auto"
-                onClick={() => openOcean(o.name)}
-                onMouseEnter={(e) =>
-                  setOceanHover({
-                    name: o.name,
-                    tip: o.tip,
-                    x: e.clientX,
-                    y: e.clientY,
-                  })
-                }
-                onMouseMove={(e) =>
-                  setOceanHover((h) =>
-                    h ? { ...h, x: e.clientX, y: e.clientY } : h,
+          {copies.map((ci) => (
+            <g
+              key={`world-${ci}`}
+              transform={ci === 0 ? undefined : `translate(${ci * worldW}, 0)`}
+            >
+              <g pointerEvents="none">
+                {oceans.map((o) => (
+                  <text
+                    key={`${o.name}-${o.x.toFixed(0)}`}
+                    x={o.x}
+                    y={o.y}
+                    textAnchor="middle"
+                    transform={
+                      southUp ? `rotate(180 ${o.x} ${o.y})` : undefined
+                    }
+                    fill="var(--ink-dim)"
+                    pointerEvents="auto"
+                    onClick={() => openOcean(o.name)}
+                    onMouseEnter={(e) =>
+                      setOceanHover({
+                        name: o.name,
+                        tip: o.tip,
+                        x: e.clientX,
+                        y: e.clientY,
+                      })
+                    }
+                    onMouseMove={(e) =>
+                      setOceanHover((h) =>
+                        h ? { ...h, x: e.clientX, y: e.clientY } : h,
+                      )
+                    }
+                    onMouseLeave={() => setOceanHover(null)}
+                    style={{
+                      fontSize: `${11 / t.k}px`,
+                      fontStyle: "italic",
+                      letterSpacing: `${1.5 / t.k}px`,
+                      opacity: 0.7,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {o.name}
+                  </text>
+                ))}
+              </g>
+              <CountryPaths
+                paths={paths}
+                statuses={statuses}
+                selectedId={selectedId}
+                palette={palette}
+                onSelect={onSelect}
+                onEnter={onEnter}
+                onMove={onMove}
+                onLeave={onLeave}
+              />
+              {clusters.map((cl) => {
+                if (cl.members.length === 1) {
+                  const { p, color, x, y } = cl.members[0]
+                  return (
+                    <circle
+                      key={`${p.kind}-${p.name}`}
+                      cx={x}
+                      cy={y}
+                      r={3.2 / t.k}
+                      fill={color}
+                      stroke="var(--panel)"
+                      strokeWidth={1 / t.k}
+                      paintOrder="stroke"
+                      style={{ cursor: "pointer" }}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        openPlace(p)
+                      }}
+                      onMouseEnter={(e) =>
+                        setPlaceHover({
+                          title: `${p.code ? `${p.code} · ` : ""}${p.name}`,
+                          sub: `${p.city}, ${p.country}`,
+                          x: e.clientX,
+                          y: e.clientY,
+                        })
+                      }
+                      onMouseMove={(e) =>
+                        setPlaceHover((h) =>
+                          h ? { ...h, x: e.clientX, y: e.clientY } : h,
+                        )
+                      }
+                      onMouseLeave={() => setPlaceHover(null)}
+                    />
                   )
                 }
-                onMouseLeave={() => setOceanHover(null)}
-                style={{
-                  fontSize: `${11 / t.k}px`,
-                  fontStyle: "italic",
-                  letterSpacing: `${1.5 / t.k}px`,
-                  opacity: 0.7,
-                  cursor: "pointer",
-                }}
-              >
-                {o.name}
-              </text>
-            ))}
-          </g>
-          <CountryPaths
-            paths={paths}
-            statuses={statuses}
-            selectedId={selectedId}
-            palette={palette}
-            onSelect={onSelect}
-            onEnter={onEnter}
-            onMove={onMove}
-            onLeave={onLeave}
-          />
-          {clusters.map((cl) => {
-            if (cl.members.length === 1) {
-              const { p, color, x, y } = cl.members[0]
-              return (
-                <circle
-                  key={`${p.kind}-${p.name}`}
-                  cx={x}
-                  cy={y}
-                  r={3.2 / t.k}
-                  fill={color}
-                  stroke="var(--panel)"
-                  strokeWidth={1 / t.k}
-                  paintOrder="stroke"
-                  style={{ cursor: "pointer" }}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    openPlace(p)
-                  }}
-                  onMouseEnter={(e) =>
-                    setPlaceHover({
-                      title: `${p.code ? `${p.code} · ` : ""}${p.name}`,
-                      sub: `${p.city}, ${p.country}`,
-                      x: e.clientX,
-                      y: e.clientY,
-                    })
-                  }
-                  onMouseMove={(e) =>
-                    setPlaceHover((h) =>
-                      h ? { ...h, x: e.clientX, y: e.clientY } : h,
-                    )
-                  }
-                  onMouseLeave={() => setPlaceHover(null)}
-                />
-              )
-            }
-            return (
-              <g
-                key={`cluster-${cl.x.toFixed(1)}-${cl.y.toFixed(1)}`}
-                transform={`translate(${cl.x},${cl.y})`}
-                style={{ cursor: "pointer" }}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setPlaceHover(null)
-                  setClusterMenu({
-                    members: cl.members.map((m) => m.p),
-                    x: e.clientX,
-                    y: e.clientY,
-                  })
-                }}
-              >
-                <g transform={southUp ? "rotate(180)" : undefined}>
+                return (
+                  <g
+                    key={`cluster-${cl.x.toFixed(1)}-${cl.y.toFixed(1)}`}
+                    transform={`translate(${cl.x},${cl.y})`}
+                    style={{ cursor: "pointer" }}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setPlaceHover(null)
+                      setClusterMenu({
+                        members: cl.members.map((m) => m.p),
+                        x: e.clientX,
+                        y: e.clientY,
+                      })
+                    }}
+                  >
+                    <g transform={southUp ? "rotate(180)" : undefined}>
+                      <circle
+                        r={6.5 / t.k}
+                        fill="var(--accent)"
+                        stroke="var(--panel)"
+                        strokeWidth={1.4 / t.k}
+                        paintOrder="stroke"
+                      />
+                      <text
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                        fill="var(--accent-ink)"
+                        style={{
+                          fontSize: `${7.5 / t.k}px`,
+                          fontWeight: 700,
+                          pointerEvents: "none",
+                        }}
+                      >
+                        {cl.members.length}
+                      </text>
+                    </g>
+                  </g>
+                )
+              })}
+              {capital && (
+                <g
+                  transform={`translate(${capital.x},${capital.y})${southUp ? " rotate(180)" : ""}`}
+                  pointerEvents="none"
+                >
                   <circle
-                    r={6.5 / t.k}
-                    fill="var(--accent)"
+                    r={3.5 / t.k}
+                    fill="#ffffff"
                     stroke="var(--panel)"
-                    strokeWidth={1.4 / t.k}
+                    strokeWidth={1.3 / t.k}
                     paintOrder="stroke"
                   />
                   <text
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fill="var(--accent-ink)"
-                    style={{
-                      fontSize: `${7.5 / t.k}px`,
-                      fontWeight: 700,
-                      pointerEvents: "none",
-                    }}
+                    x={7.5 / t.k}
+                    y={3.6 / t.k}
+                    fill="var(--ink)"
+                    stroke="var(--panel)"
+                    strokeWidth={3 / t.k}
+                    paintOrder="stroke"
+                    style={{ fontSize: `${12 / t.k}px`, fontWeight: 600 }}
                   >
-                    {cl.members.length}
+                    {capital.name}
                   </text>
                 </g>
-              </g>
-            )
-          })}
+              )}
+            </g>
+          ))}
           {flight && flightPos && (
             <g
               transform={`translate(${flightPos[0]},${flightPos[1]}) rotate(${flight.heading})`}
@@ -478,31 +525,6 @@ const FlatMap = ({ size }: Props) => {
                 strokeWidth={0.5 / t.k}
                 paintOrder="stroke"
               />
-            </g>
-          )}
-          {capital && (
-            <g
-              transform={`translate(${capital.x},${capital.y})${southUp ? " rotate(180)" : ""}`}
-              pointerEvents="none"
-            >
-              <circle
-                r={3.5 / t.k}
-                fill="#ffffff"
-                stroke="var(--panel)"
-                strokeWidth={1.3 / t.k}
-                paintOrder="stroke"
-              />
-              <text
-                x={7.5 / t.k}
-                y={3.6 / t.k}
-                fill="var(--ink)"
-                stroke="var(--panel)"
-                strokeWidth={3 / t.k}
-                paintOrder="stroke"
-                style={{ fontSize: `${12 / t.k}px`, fontWeight: 600 }}
-              >
-                {capital.name}
-              </text>
             </g>
           )}
           {iss && issScreen && (
