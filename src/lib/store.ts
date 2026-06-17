@@ -1,6 +1,7 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { useSyncExternalStore } from "react"
+import type { LayerId, TransportPoint } from "@/lib/transport"
 
 export type Status = "visited" | "wishlist" | "blocked"
 export type View = "globe" | "map"
@@ -75,6 +76,8 @@ export type TravelState = TravelData & {
   flightOpen: boolean
   issOpen: boolean
   ocean: string | null
+  layers: Record<LayerId, boolean>
+  place: TransportPoint | null
   setFlight: (flight: LiveFlight | null) => void
   openFlight: () => void
   closeFlight: () => void
@@ -82,6 +85,9 @@ export type TravelState = TravelData & {
   closeISS: () => void
   openOcean: (name: string) => void
   closeOcean: () => void
+  toggleLayer: (id: LayerId) => void
+  openPlace: (place: TransportPoint) => void
+  closePlace: () => void
   setStatus: (id: string, status: Status | null) => void
   cycle: (id: string) => void
   setNote: (id: string, note: string) => void
@@ -116,6 +122,8 @@ export const useTravelStore = create<TravelState>()(
       flightOpen: false,
       issOpen: false,
       ocean: null,
+      layers: { airports: false, stations: false, ports: false },
+      place: null,
 
       setStatus: (id, status) =>
         set((state) => {
@@ -166,6 +174,7 @@ export const useTravelStore = create<TravelState>()(
           flightOpen: true,
           issOpen: false,
           ocean: null,
+          place: null,
           selectedId: null,
         }),
       closeFlight: () => set({ flightOpen: false }),
@@ -174,6 +183,7 @@ export const useTravelStore = create<TravelState>()(
           issOpen: true,
           flightOpen: false,
           ocean: null,
+          place: null,
           selectedId: null,
         }),
       closeISS: () => set({ issOpen: false }),
@@ -182,9 +192,23 @@ export const useTravelStore = create<TravelState>()(
           ocean,
           flightOpen: false,
           issOpen: false,
+          place: null,
           selectedId: null,
         }),
       closeOcean: () => set({ ocean: null }),
+      toggleLayer: (id) =>
+        set((state) => ({
+          layers: { ...state.layers, [id]: !state.layers[id] },
+        })),
+      openPlace: (place) =>
+        set({
+          place,
+          ocean: null,
+          flightOpen: false,
+          issOpen: false,
+          selectedId: null,
+        }),
+      closePlace: () => set({ place: null }),
       focus: (focusId) => set({ focusId }),
       select: (selectedId) =>
         set({
@@ -193,6 +217,7 @@ export const useTravelStore = create<TravelState>()(
           flightOpen: false,
           issOpen: false,
           ocean: null,
+          place: null,
         }),
       reset: () =>
         set({
@@ -219,6 +244,7 @@ export const useTravelStore = create<TravelState>()(
         localePinned: state.localePinned,
         autoSpin: state.autoSpin,
         southUp: state.southUp,
+        layers: state.layers,
       }),
       migrate: (persisted) => {
         const state = (persisted ?? {}) as Partial<TravelState>
@@ -228,6 +254,11 @@ export const useTravelStore = create<TravelState>()(
           reviews: state.reviews ?? {},
           locale: state.locale ?? "en",
           localePinned: state.localePinned ?? false,
+          layers: state.layers ?? {
+            airports: false,
+            stations: false,
+            ports: false,
+          },
         } as TravelState
       },
     },

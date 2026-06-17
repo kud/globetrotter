@@ -8,6 +8,7 @@ import { zoom as d3zoom, zoomIdentity, type ZoomBehavior } from "d3-zoom"
 import "d3-transition"
 import { countryFeatures, countryById, type CountryFeature } from "@/lib/geo"
 import { OCEANS, oceanTip } from "@/lib/oceans"
+import { LAYERS, type TransportPoint } from "@/lib/transport"
 import { getCountryInfo, getCapitalLatLng } from "@/lib/country-info"
 import { useTravelStore, useResolvedTheme } from "@/lib/store"
 import { PLANE_PATH } from "@/lib/flight"
@@ -105,12 +106,20 @@ const FlatMap = ({ size }: Props) => {
   const focusId = useTravelStore((s) => s.focusId)
   const selectCountry = useTravelStore((s) => s.select)
   const openOcean = useTravelStore((s) => s.openOcean)
+  const openPlace = useTravelStore((s) => s.openPlace)
+  const layerState = useTravelStore((s) => s.layers)
   const [hover, setHover] = useState<Hover | null>(null)
   const [planeHover, setPlaneHover] = useState(false)
   const [issHover, setIssHover] = useState(false)
   const [oceanHover, setOceanHover] = useState<{
     name: string
     tip: string
+    x: number
+    y: number
+  } | null>(null)
+  const [placeHover, setPlaceHover] = useState<{
+    title: string
+    sub: string
     x: number
     y: number
   } | null>(null)
@@ -187,6 +196,18 @@ const FlatMap = ({ size }: Props) => {
     return point ? { name: info.capital, x: point[0], y: point[1] } : null
   }, [selectedId, project])
 
+  const places = useMemo(() => {
+    const out: { p: TransportPoint; color: string; x: number; y: number }[] = []
+    for (const layer of LAYERS) {
+      if (!layerState[layer.id]) continue
+      for (const p of layer.data) {
+        const xy = project([p.lng, p.lat])
+        if (xy) out.push({ p, color: layer.color, x: xy[0], y: xy[1] })
+      }
+    }
+    return out
+  }, [layerState, project])
+
   useEffect(() => {
     if (!svgRef.current) return
     const svg = select(svgRef.current)
@@ -195,7 +216,7 @@ const FlatMap = ({ size }: Props) => {
     let raf = 0
     let next: Transform | null = null
     const behavior = d3zoom<SVGSVGElement, unknown>()
-      .scaleExtent([1, 9])
+      .scaleExtent([1, 24])
       .on("zoom", (e) => {
         next = { k: e.transform.k, x: e.transform.x, y: e.transform.y }
         if (raf) return
@@ -212,15 +233,19 @@ const FlatMap = ({ size }: Props) => {
     }
   }, [size.width, size.height])
 
-  // Recenter (and gently zoom) on the focused country — e.g. picked from search.
+  // Recenter on the focused country — but only when already zoomed in. At the
+  // full world view (k≈1) selecting a country shouldn't yank the map around;
+  // we keep the overview and just colour/panel it. When zoomed, we pan to keep
+  // the country in frame at the *current* zoom rather than forcing a new level.
   useEffect(() => {
     if (!focusId || !svgRef.current || !zoomRef.current) return
+    if (t.k <= 1.05) return
     const c = countryById.get(focusId)
     if (!c) return
     const p = project(c.centroid)
     if (!p) return
     const [x, y] = p
-    const k = 2.5
+    const k = t.k
     select(svgRef.current)
       .transition()
       .duration(700)
@@ -315,6 +340,37 @@ const FlatMap = ({ size }: Props) => {
             onMove={onMove}
             onLeave={onLeave}
           />
+          {places.map(({ p, color, x, y }) => (
+            <circle
+              key={`${p.kind}-${p.name}`}
+              cx={x}
+              cy={y}
+              r={3.2 / t.k}
+              fill={color}
+              stroke="var(--panel)"
+              strokeWidth={1 / t.k}
+              paintOrder="stroke"
+              style={{ cursor: "pointer" }}
+              onClick={(e) => {
+                e.stopPropagation()
+                openPlace(p)
+              }}
+              onMouseEnter={(e) =>
+                setPlaceHover({
+                  title: `${p.code ? `${p.code} · ` : ""}${p.name}`,
+                  sub: `${p.city}, ${p.country}`,
+                  x: e.clientX,
+                  y: e.clientY,
+                })
+              }
+              onMouseMove={(e) =>
+                setPlaceHover((h) =>
+                  h ? { ...h, x: e.clientX, y: e.clientY } : h,
+                )
+              }
+              onMouseLeave={() => setPlaceHover(null)}
+            />
+          ))}
           {flight && flightPos && (
             <g
               transform={`translate(${flightPos[0]},${flightPos[1]}) rotate(${flight.heading})`}
@@ -416,6 +472,18 @@ const FlatMap = ({ size }: Props) => {
           <strong>🌊 {oceanHover.name}</strong>
           <span className="text-[11px] text-[var(--ink-dim)]">
             {oceanHover.tip}
+          </span>
+        </div>
+      )}
+
+      {placeHover && (
+        <div
+          className="pointer-events-none fixed z-10 flex -translate-x-1/2 -translate-y-[130%] flex-col whitespace-nowrap rounded-lg border border-[var(--border-strong)] bg-[var(--panel)] px-2.5 py-1.5 text-[13px] text-[var(--ink)] shadow-lg"
+          style={{ left: placeHover.x, top: placeHover.y }}
+        >
+          <strong>{placeHover.title}</strong>
+          <span className="text-[11px] text-[var(--ink-dim)]">
+            {placeHover.sub}
           </span>
         </div>
       )}

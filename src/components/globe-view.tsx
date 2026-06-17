@@ -19,6 +19,7 @@ import { getCountryInfo, getCapitalLatLng } from "@/lib/country-info"
 import { useTravelStore, useResolvedTheme } from "@/lib/store"
 import { MAP_PALETTE, lighten, baseFill } from "@/lib/colors"
 import { OCEANS, oceanTip } from "@/lib/oceans"
+import { LAYERS, KIND_ICON, type TransportPoint } from "@/lib/transport"
 import { useAdvisoryStore, combinedLevel } from "@/lib/advisory-store"
 import { PLANE_PATH, flightTooltip, type LiveFlight } from "@/lib/flight"
 import { useISS } from "@/lib/use-iss"
@@ -60,6 +61,18 @@ const labelLabel = (d: object) => {
   return `<div style="background:rgba(15,20,32,.92);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:6px 10px;font:600 13px system-ui,sans-serif;color:#eef2f8;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.4)">🌊 ${l.text}<div style="font-weight:400;font-size:11px;opacity:.7;margin-top:1px">${l.tip}</div></div>`
 }
 
+// Transport-layer points (airports / stations / ports) drawn as GPU dots — a
+// dedicated points layer keeps them clickable with native hover tooltips.
+type GlobePoint = TransportPoint & { color: string }
+const pointLat = (d: object) => (d as GlobePoint).lat
+const pointLng = (d: object) => (d as GlobePoint).lng
+const pointColor = (d: object) => (d as GlobePoint).color
+const pointLabel = (d: object) => {
+  const p = d as GlobePoint
+  const code = p.code ? `${p.code} · ` : ""
+  return `<div style="background:rgba(15,20,32,.92);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:6px 10px;font:600 13px system-ui,sans-serif;color:#eef2f8;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.4)">${KIND_ICON[p.kind]} ${code}${p.name}<div style="font-weight:400;font-size:11px;opacity:.7;margin-top:1px">${p.city}, ${p.country}</div></div>`
+}
+
 const htmlLat = (d: object) =>
   (d as HtmlItem).kind === "flight"
     ? (d as { flight: LiveFlight }).flight.lat
@@ -92,6 +105,7 @@ const GlobeView = ({ size }: Props) => {
   const focusId = useTravelStore((s) => s.focusId)
   const selectedId = useTravelStore((s) => s.selectedId)
   const select = useTravelStore((s) => s.select)
+  const layerState = useTravelStore((s) => s.layers)
   const iss = useISS()
   const [hover, setHover] = useState<Hover | null>(null)
   const mouse = useRef({ x: 0, y: 0 })
@@ -149,6 +163,19 @@ const GlobeView = ({ size }: Props) => {
   const onLabelClick = useCallback(
     (d: object) => useTravelStore.getState().openOcean((d as GlobeLabel).text),
     [],
+  )
+
+  const onPointClick = useCallback(
+    (d: object) => useTravelStore.getState().openPlace(d as TransportPoint),
+    [],
+  )
+
+  const points = useMemo<GlobePoint[]>(
+    () =>
+      LAYERS.filter((l) => layerState[l.id]).flatMap((l) =>
+        l.data.map((p) => ({ ...p, color: l.color })),
+      ),
+    [layerState],
   )
 
   // The selected country's capital, if known — drives both the name label and
@@ -337,6 +364,16 @@ const GlobeView = ({ size }: Props) => {
         labelResolution={2}
         labelAltitude={0.013}
         labelsTransitionDuration={0}
+        pointsData={points}
+        pointLat={pointLat}
+        pointLng={pointLng}
+        pointColor={pointColor}
+        pointLabel={pointLabel}
+        onPointClick={onPointClick}
+        pointAltitude={0.012}
+        pointRadius={0.32}
+        pointResolution={6}
+        pointsTransitionDuration={0}
         htmlElementsData={htmlItems}
         htmlLat={htmlLat}
         htmlLng={htmlLng}
