@@ -21,7 +21,7 @@ const PanelHeader = ({
 }) => (
   <header className="flex items-start justify-between gap-3">
     <div className="min-w-0">
-      <h2 className="font-display flex items-start gap-2 text-2xl font-semibold leading-tight">
+      <h2 className="font-display flex items-start gap-3 text-2xl font-semibold leading-tight">
         <span className="shrink-0 text-[1.6rem] leading-none">{icon}</span>
         <span className="min-w-0">{title}</span>
       </h2>

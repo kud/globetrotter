@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { useTravelStore } from "@/lib/store"
 import { useT } from "@/lib/i18n"
+import { PLANE_PATH } from "@/lib/flight"
 import PanelImage from "@/components/panel-image"
 import PanelHeader from "@/components/panel-header"
 
@@ -101,7 +102,17 @@ const FlightPanel = () => {
           className="absolute right-0 top-0 z-20 flex h-full w-[min(360px,92vw)] flex-col gap-5 overflow-y-auto border-l border-[var(--border)] bg-[var(--panel)] p-5 shadow-2xl"
         >
           <PanelHeader
-            icon="✈"
+            icon={
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden
+              >
+                <path d={PLANE_PATH} />
+              </svg>
+            }
             title={flight.callsign}
             subtitle={
               flight.country || flight.operator || flight.registration || ""

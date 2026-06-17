@@ -3,6 +3,7 @@
 import { ADVISORY_META } from "@/lib/advisory"
 import { useT, statusKey } from "@/lib/i18n"
 import type { Status } from "@/lib/store"
+import { HoverTip } from "@/components/hover-tip"
 
 export type Hover = {
   name: string
@@ -36,26 +37,23 @@ export const RiskMeter = ({ level }: { level: number }) => (
 export const CountryTooltip = ({ hover }: { hover: Hover }) => {
   const t = useT()
   return (
-    <div
-      className="pointer-events-none fixed z-10 flex -translate-x-1/2 -translate-y-[130%] items-center gap-2 whitespace-nowrap rounded-lg border border-[var(--border-strong)] bg-[var(--panel)] px-2.5 py-1.5 text-[13px] text-[var(--ink)] shadow-lg"
+    <HoverTip
       style={{ left: hover.x, top: hover.y }}
-    >
-      {hover.level && <RiskMeter level={hover.level} />}
-      <span className="flex flex-col">
-        <span>
-          <strong>
-            {hover.flag} {hover.name}
-          </strong>
-          <span className="ml-2 text-[11px] text-[var(--ink-dim)]">
+      extra={hover.level ? <RiskMeter level={hover.level} /> : undefined}
+      icon={hover.flag}
+      title={
+        <>
+          {hover.name}
+          <span className="ml-2 text-[11px] font-normal text-[var(--ink-dim)]">
             {t(statusKey(hover.status))}
           </span>
-        </span>
-        {(hover.capital || hover.subregion) && (
-          <span className="text-[11px] text-[var(--ink-dim)]">
-            {[hover.capital, hover.subregion].filter(Boolean).join(" · ")}
-          </span>
-        )}
-      </span>
-    </div>
+        </>
+      }
+      detail={
+        hover.capital || hover.subregion
+          ? [hover.capital, hover.subregion].filter(Boolean).join(" · ")
+          : undefined
+      }
+    />
   )
 }

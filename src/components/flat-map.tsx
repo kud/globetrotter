@@ -32,6 +32,7 @@ import type { Status } from "@/lib/store"
 import type { Size } from "@/lib/use-element-size"
 import { PlusIcon, MinusIcon, TargetIcon } from "@/components/icons"
 import { CountryTooltip, type Hover } from "@/components/country-tooltip"
+import { HoverTip } from "@/components/hover-tip"
 
 type Props = { size: Size }
 type Transform = { k: number; x: number; y: number }
@@ -119,6 +120,7 @@ const FlatMap = ({ size }: Props) => {
   const [hover, setHover] = useState<Hover | null>(null)
   const [planeHover, setPlaneHover] = useState(false)
   const [issHover, setIssHover] = useState(false)
+  const [moonHover, setMoonHover] = useState(false)
   const [oceanHover, setOceanHover] = useState<{
     name: string
     tip: string
@@ -336,6 +338,16 @@ const FlatMap = ({ size }: Props) => {
   for (let i = firstCopy; i <= lastCopy && copies.length < 5; i++)
     copies.push(i)
 
+  // Screen position for a live-marker tooltip (plane / ISS / Moon), honouring
+  // the south-up flip — shared so all three tooltips sit identically.
+  const markerTipPos = (p: [number, number]) =>
+    southUp
+      ? {
+          left: size.width - (t.x + p[0] * t.k),
+          top: size.height - (t.y + p[1] * t.k),
+        }
+      : { left: t.x + p[0] * t.k, top: t.y + p[1] * t.k }
+
   return (
     <div className="relative h-full w-full">
       <svg
@@ -552,6 +564,8 @@ const FlatMap = ({ size }: Props) => {
                 transition: "transform 60s linear",
               }}
               onClick={openMoon}
+              onMouseEnter={() => setMoonHover(true)}
+              onMouseLeave={() => setMoonHover(false)}
             >
               {/* A soft moonlight halo (faint outer glow + bright core) rather
                   than an emoji — abstract and map-like. Constant screen size. */}
@@ -566,7 +580,6 @@ const FlatMap = ({ size }: Props) => {
                   strokeWidth={0.6}
                   paintOrder="stroke"
                 />
-                <title>Moon · {moon.phaseName}</title>
               </g>
             </g>
           )}
@@ -600,27 +613,20 @@ const FlatMap = ({ size }: Props) => {
       {hover && <CountryTooltip hover={hover} />}
 
       {oceanHover && (
-        <div
-          className="pointer-events-none fixed z-10 flex -translate-x-1/2 -translate-y-[130%] flex-col whitespace-nowrap rounded-lg border border-[var(--border-strong)] bg-[var(--panel)] px-2.5 py-1.5 text-[13px] text-[var(--ink)] shadow-lg"
+        <HoverTip
           style={{ left: oceanHover.x, top: oceanHover.y }}
-        >
-          <strong>🌊 {oceanHover.name}</strong>
-          <span className="text-[11px] text-[var(--ink-dim)]">
-            {oceanHover.tip}
-          </span>
-        </div>
+          icon="🌊"
+          title={oceanHover.name}
+          detail={oceanHover.tip}
+        />
       )}
 
       {placeHover && (
-        <div
-          className="pointer-events-none fixed z-10 flex -translate-x-1/2 -translate-y-[130%] flex-col whitespace-nowrap rounded-lg border border-[var(--border-strong)] bg-[var(--panel)] px-2.5 py-1.5 text-[13px] text-[var(--ink)] shadow-lg"
+        <HoverTip
           style={{ left: placeHover.x, top: placeHover.y }}
-        >
-          <strong>{placeHover.title}</strong>
-          <span className="text-[11px] text-[var(--ink-dim)]">
-            {placeHover.sub}
-          </span>
-        </div>
+          title={placeHover.title}
+          detail={placeHover.sub}
+        />
       )}
 
       {clusterMenu && (
@@ -661,47 +667,33 @@ const FlatMap = ({ size }: Props) => {
       )}
 
       {flight && flightPos && planeHover && (
-        <div
-          className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[150%] whitespace-nowrap rounded-lg border border-[var(--border-strong)] bg-[var(--panel)] px-2.5 py-1.5 text-[13px] text-[var(--ink)] shadow-lg"
-          style={
-            southUp
-              ? {
-                  left: size.width - (t.x + flightPos[0] * t.k),
-                  top: size.height - (t.y + flightPos[1] * t.k),
-                }
-              : {
-                  left: t.x + flightPos[0] * t.k,
-                  top: t.y + flightPos[1] * t.k,
-                }
-          }
-        >
-          <strong>✈ {flight.callsign}</strong>
-          <span className="ml-2 text-[11px] text-[var(--ink-dim)]">
-            {flight.speedKmh} km/h
-          </span>
-        </div>
+        <HoverTip
+          position="absolute"
+          style={markerTipPos(flightPos)}
+          icon="✈"
+          title={flight.callsign}
+          detail={`${flight.speedKmh} km/h`}
+        />
       )}
 
       {iss && issScreen && issHover && (
-        <div
-          className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-[150%] whitespace-nowrap rounded-lg border border-[var(--border-strong)] bg-[var(--panel)] px-2.5 py-1.5 text-[13px] text-[var(--ink)] shadow-lg"
-          style={
-            southUp
-              ? {
-                  left: size.width - (t.x + issScreen[0] * t.k),
-                  top: size.height - (t.y + issScreen[1] * t.k),
-                }
-              : {
-                  left: t.x + issScreen[0] * t.k,
-                  top: t.y + issScreen[1] * t.k,
-                }
-          }
-        >
-          <strong>ISS</strong>
-          <span className="ml-2 text-[11px] text-[var(--ink-dim)]">
-            {iss.altKm} km · {iss.speedKmh} km/h
-          </span>
-        </div>
+        <HoverTip
+          position="absolute"
+          style={markerTipPos(issScreen)}
+          icon="🛰"
+          title="ISS"
+          detail={`${iss.altKm} km · ${iss.speedKmh} km/h`}
+        />
+      )}
+
+      {moon && moonScreen && moonHover && (
+        <HoverTip
+          position="absolute"
+          style={markerTipPos(moonScreen)}
+          icon="🌙"
+          title="Moon"
+          detail={moon.phaseName}
+        />
       )}
     </div>
   )
