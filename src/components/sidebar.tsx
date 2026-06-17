@@ -258,8 +258,20 @@ const Sidebar = () => {
             style={{
               width: hydrated ? `${percent}%` : "0%",
               background: "linear-gradient(90deg, #2bff88, #29d3ff)",
+              // Subtle neon — a tight glow that hints "wow" without the blur
+              // smearing past the bar.
               boxShadow:
-                "0 0 5px rgba(43,255,136,0.75), 0 0 12px rgba(41,211,255,0.55)",
+                "0 0 3px rgba(43,255,136,0.5), 0 0 6px rgba(41,211,255,0.28)",
+            }}
+          />
+          {/* A clean white knob marking the current position — "you are here"
+              on the journey, with a soft drop shadow and a faint neon halo. */}
+          <div
+            className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white transition-[left] duration-500"
+            style={{
+              left: hydrated ? `${percent}%` : "0%",
+              boxShadow:
+                "0 1px 3px rgba(0,0,0,0.45), 0 0 5px rgba(43,255,136,0.45)",
             }}
           />
         </div>

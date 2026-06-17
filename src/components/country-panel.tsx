@@ -21,6 +21,7 @@ import { STATUS, withAlpha } from "@/lib/colors"
 import { StatusIcon } from "@/components/icons"
 import PanelImage from "@/components/panel-image"
 import PanelHeader from "@/components/panel-header"
+import { Fact } from "@/components/panel-stats"
 
 const numberFmt = new Intl.NumberFormat("en-US")
 const compactFmt = new Intl.NumberFormat("en-US", {
@@ -54,13 +55,6 @@ const StatusButton = ({
   >
     {children}
   </button>
-)
-
-const Fact = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex justify-between gap-3 border-b border-[var(--border)] py-1.5 last:border-0">
-    <span className="text-[var(--ink-dim)]">{label}</span>
-    <span className="text-right font-medium">{value}</span>
-  </div>
 )
 
 const STAR_GOLD = "#f5b50a"

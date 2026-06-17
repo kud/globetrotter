@@ -4,8 +4,10 @@ import { useEffect, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { useTravelStore } from "@/lib/store"
 import { KIND_COLOR, KIND_ICON, type TransportPoint } from "@/lib/transport"
+import { useT } from "@/lib/i18n"
 import PanelImage from "@/components/panel-image"
 import PanelHeader from "@/components/panel-header"
+import { Stat } from "@/components/panel-stats"
 
 type Summary = { extract: string; url: string; image: string | null }
 
@@ -15,18 +17,10 @@ const KIND_LABEL = {
   port: "Seaport",
 } as const
 
-const Stat = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex flex-col rounded-lg border border-[var(--border)] bg-[var(--panel-hover)] px-3 py-2">
-    <span className="text-[10px] uppercase tracking-wide text-[var(--ink-dim)]">
-      {label}
-    </span>
-    <span className="text-sm font-semibold">{value}</span>
-  </div>
-)
-
 const placeKey = (p: TransportPoint) => `${p.name}@${p.lat},${p.lng}`
 
 const PlacePanel = () => {
+  const t = useT()
   const place = useTravelStore((s) => s.place)
   const close = () => useTravelStore.getState().closePlace()
   // Keyed by place identity so a stale summary never flashes when switching.
@@ -101,6 +95,7 @@ const PlacePanel = () => {
               </span>
             }
             onClose={close}
+            closeLabel={t("close")}
           />
 
           <PanelImage
@@ -132,7 +127,7 @@ const PlacePanel = () => {
               rel="noopener noreferrer"
               className="font-medium text-[var(--accent)] hover:underline"
             >
-              Read on Wikipedia ↗
+              {t("wiki.more")}
             </a>
           )}
         </motion.aside>

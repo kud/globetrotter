@@ -3,24 +3,20 @@
 import { useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { useTravelStore } from "@/lib/store"
+import { useT } from "@/lib/i18n"
 import { useISS } from "@/lib/use-iss"
 import { ISS_MARKUP } from "@/lib/iss-mark"
 import PanelImage from "@/components/panel-image"
 import PanelHeader from "@/components/panel-header"
+import { Fact } from "@/components/panel-stats"
 
 // Public-domain NASA photo of the ISS, via Wikimedia's filename-based redirect
 // (no fragile path hash). Falls back gracefully if it ever fails to load.
 const ISS_PHOTO =
   "https://commons.wikimedia.org/wiki/Special:FilePath/International%20Space%20Station%20after%20undocking%20of%20STS-132.jpg?width=640"
 
-const Row = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex justify-between gap-3 border-b border-[var(--border)] py-1.5 last:border-0">
-    <span className="text-[var(--ink-dim)]">{label}</span>
-    <span className="text-right font-medium tabular-nums">{value}</span>
-  </div>
-)
-
 const ISSPanel = () => {
+  const t = useT()
   const open = useTravelStore((s) => s.issOpen)
   const close = () => useTravelStore.getState().closeISS()
   const iss = useISS()
@@ -49,6 +45,7 @@ const ISSPanel = () => {
             title="ISS"
             subtitle="International Space Station"
             onClose={close}
+            closeLabel={t("close")}
           />
 
           <div className="flex flex-col gap-1">
@@ -73,12 +70,12 @@ const ISSPanel = () => {
           </span>
 
           <section className="text-sm">
-            <Row label="Altitude" value={iss ? `${iss.altKm} km` : "—"} />
-            <Row
+            <Fact label="Altitude" value={iss ? `${iss.altKm} km` : "—"} />
+            <Fact
               label="Speed"
               value={iss ? `${iss.speedKmh.toLocaleString()} km/h` : "—"}
             />
-            <Row
+            <Fact
               label="Position"
               value={iss ? `${iss.lat.toFixed(2)}, ${iss.lng.toFixed(2)}` : "—"}
             />
@@ -90,7 +87,7 @@ const ISSPanel = () => {
             rel="noopener noreferrer"
             className="font-medium text-[var(--accent)] hover:underline"
           >
-            Read on Wikipedia ↗
+            {t("wiki.more")}
           </a>
 
           <p className="text-[11px] leading-relaxed text-[var(--ink-faint)]">

@@ -3,22 +3,16 @@
 import { useEffect, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { useTravelStore } from "@/lib/store"
+import { useT } from "@/lib/i18n"
 import { oceanByName } from "@/lib/oceans"
 import PanelImage from "@/components/panel-image"
 import PanelHeader from "@/components/panel-header"
+import { Stat } from "@/components/panel-stats"
 
 type Summary = { extract: string; url: string; image: string | null }
 
-const Stat = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex flex-col rounded-lg border border-[var(--border)] bg-[var(--panel-hover)] px-3 py-2">
-    <span className="text-[10px] uppercase tracking-wide text-[var(--ink-dim)]">
-      {label}
-    </span>
-    <span className="text-sm font-semibold tabular-nums">{value}</span>
-  </div>
-)
-
 const OceanPanel = () => {
+  const t = useT()
   const ocean = useTravelStore((s) => s.ocean)
   const close = () => useTravelStore.getState().closeOcean()
   const meta = ocean ? oceanByName(ocean) : undefined
@@ -76,7 +70,12 @@ const OceanPanel = () => {
           transition={{ type: "spring", stiffness: 320, damping: 34 }}
           className="absolute right-0 top-0 z-20 flex h-full w-[min(360px,92vw)] flex-col gap-4 overflow-y-auto border-l border-[var(--border)] bg-[var(--panel)] p-5 shadow-2xl"
         >
-          <PanelHeader icon="🌊" title={ocean} onClose={close} />
+          <PanelHeader
+            icon="🌊"
+            title={ocean}
+            onClose={close}
+            closeLabel={t("close")}
+          />
 
           <PanelImage
             key={summary?.image ?? "placeholder"}
@@ -109,7 +108,7 @@ const OceanPanel = () => {
               rel="noopener noreferrer"
               className="font-medium text-[var(--accent)] hover:underline"
             >
-              Read on Wikipedia ↗
+              {t("wiki.more")}
             </a>
           )}
         </motion.aside>

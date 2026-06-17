@@ -5,24 +5,18 @@ import { AnimatePresence, motion } from "framer-motion"
 import { useTravelStore } from "@/lib/store"
 import { useMoon } from "@/lib/use-moon"
 import { phaseEmoji } from "@/lib/moon"
+import { useT } from "@/lib/i18n"
 import PanelImage from "@/components/panel-image"
 import PanelHeader from "@/components/panel-header"
+import { Stat } from "@/components/panel-stats"
 
 // Public-domain full-Moon photo (Gregory H. Revera) via Wikimedia's filename
 // redirect, so there's no fragile path hash to break.
 const MOON_PHOTO =
   "https://commons.wikimedia.org/wiki/Special:FilePath/FullMoon2010.jpg?width=640"
 
-const Stat = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex flex-col rounded-lg border border-[var(--border)] bg-[var(--panel-hover)] px-3 py-2">
-    <span className="text-[10px] uppercase tracking-wide text-[var(--ink-dim)]">
-      {label}
-    </span>
-    <span className="text-sm font-semibold tabular-nums">{value}</span>
-  </div>
-)
-
 const MoonPanel = () => {
+  const t = useT()
   const open = useTravelStore((s) => s.moonOpen)
   const close = () => useTravelStore.getState().closeMoon()
   const moon = useMoon()
@@ -51,6 +45,7 @@ const MoonPanel = () => {
             title="The Moon"
             subtitle={moon ? moon.phaseName : "Earth's natural satellite"}
             onClose={close}
+            closeLabel={t("close")}
           />
 
           <PanelImage src={MOON_PHOTO} alt="The Moon" placeholder="🌕" />
@@ -97,7 +92,7 @@ const MoonPanel = () => {
             rel="noopener noreferrer"
             className="font-medium text-[var(--accent)] hover:underline"
           >
-            Read on Wikipedia ↗
+            {t("wiki.more")}
           </a>
         </motion.aside>
       )}

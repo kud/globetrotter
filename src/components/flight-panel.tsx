@@ -7,15 +7,9 @@ import { useT } from "@/lib/i18n"
 import { PLANE_PATH } from "@/lib/flight"
 import PanelImage from "@/components/panel-image"
 import PanelHeader from "@/components/panel-header"
+import { Fact } from "@/components/panel-stats"
 
 type Photo = { src: string; link: string | null; photographer: string | null }
-
-const Row = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex justify-between gap-3 border-b border-[var(--border)] py-1.5 last:border-0">
-    <span className="text-[var(--ink-dim)]">{label}</span>
-    <span className="text-right font-medium">{value}</span>
-  </div>
-)
 
 type AirportLike = { iata?: string; code?: string; name?: string }
 
@@ -109,6 +103,7 @@ const FlightPanel = () => {
                 viewBox="0 0 24 24"
                 fill="currentColor"
                 aria-hidden
+                style={{ transform: "rotate(45deg)" }}
               >
                 <path d={PLANE_PATH} />
               </svg>
@@ -160,34 +155,44 @@ const FlightPanel = () => {
           {flight.origin && flight.destination && (
             <div className="flex items-center justify-between gap-2 rounded-xl border border-[var(--border)] p-3">
               <AirportEnd airport={flight.origin} />
-              <div className="shrink-0 text-[var(--accent)]">✈</div>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden
+                className="shrink-0 text-[var(--accent)]"
+                style={{ transform: "rotate(90deg)" }}
+              >
+                <path d={PLANE_PATH} />
+              </svg>
               <AirportEnd airport={flight.destination} />
             </div>
           )}
 
           <section className="text-sm">
             {flight.type && (
-              <Row label={t("flight.aircraft")} value={flight.type} />
+              <Fact label={t("flight.aircraft")} value={flight.type} />
             )}
             {flight.operator && (
-              <Row label={t("flight.operator")} value={flight.operator} />
+              <Fact label={t("flight.operator")} value={flight.operator} />
             )}
             {flight.registration && (
-              <Row
+              <Fact
                 label={t("flight.registration")}
                 value={flight.registration}
               />
             )}
-            <Row
+            <Fact
               label={t("flight.altitude")}
               value={flight.altKm != null ? `${flight.altKm} km` : "—"}
             />
-            <Row label={t("flight.speed")} value={`${flight.speedKmh} km/h`} />
-            <Row
+            <Fact label={t("flight.speed")} value={`${flight.speedKmh} km/h`} />
+            <Fact
               label={t("flight.heading")}
               value={`${Math.round(flight.heading)}°`}
             />
-            <Row
+            <Fact
               label={t("flight.position")}
               value={`${flight.lat.toFixed(2)}, ${flight.lng.toFixed(2)}`}
             />
