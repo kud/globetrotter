@@ -532,6 +532,14 @@ const CountryPanel = () => {
 
           {info && (
             <section className="text-sm">
+              {info.parent && advisoryInfo && (
+                <Fact
+                  label={t("fact.partof")}
+                  value={
+                    locale === "fr" ? advisoryInfo.nameFr : advisoryInfo.name
+                  }
+                />
+              )}
               {info.capital && (
                 <Fact label={t("fact.capital")} value={info.capital} />
               )}

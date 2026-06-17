@@ -234,6 +234,70 @@ const TERRITORY_INFO: Record<string, CountryInfo> = {
     "🇵🇹",
     [37.8, -25.5],
   ),
+  "826-eng": {
+    cca2: "GB",
+    cca3: "GBR",
+    name: "England",
+    nameFr: "Angleterre",
+    capital: "London",
+    region: "Europe",
+    subregion: "Northern Europe",
+    languages: ["English"],
+    currencies: ["British pound (£)"],
+    population: 56550000,
+    flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+    area: 130279,
+    latlng: [52.5, -1.5],
+    parent: "826",
+  },
+  "826-sco": {
+    cca2: "GB",
+    cca3: "GBR",
+    name: "Scotland",
+    nameFr: "Écosse",
+    capital: "Edinburgh",
+    region: "Europe",
+    subregion: "Northern Europe",
+    languages: ["English", "Scots", "Scottish Gaelic"],
+    currencies: ["British pound (£)"],
+    population: 5480000,
+    flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+    area: 77933,
+    latlng: [56.8, -4.2],
+    parent: "826",
+  },
+  "826-wal": {
+    cca2: "GB",
+    cca3: "GBR",
+    name: "Wales",
+    nameFr: "Pays de Galles",
+    capital: "Cardiff",
+    region: "Europe",
+    subregion: "Northern Europe",
+    languages: ["Welsh", "English"],
+    currencies: ["British pound (£)"],
+    population: 3130000,
+    flag: "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
+    area: 20779,
+    latlng: [52.3, -3.8],
+    parent: "826",
+  },
+  "826-nir": {
+    cca2: "GB",
+    cca3: "GBR",
+    name: "Northern Ireland",
+    nameFr: "Irlande du Nord",
+    capital: "Belfast",
+    region: "Europe",
+    subregion: "Northern Europe",
+    languages: ["English", "Irish"],
+    currencies: ["British pound (£)"],
+    population: 1900000,
+    flag: "🇬🇧",
+    area: 14130,
+    latlng: [54.7, -6.8],
+    parent: "826",
+  },
 }
 
 const TERRITORY_CAPITALS: Record<string, [number, number]> = {
@@ -251,6 +315,10 @@ const TERRITORY_CAPITALS: Record<string, [number, number]> = {
   "it-sar": [39.22, 9.12], // Cagliari
   "pt-mad": [32.65, -16.91], // Funchal
   "pt-azo": [37.74, -25.67], // Ponta Delgada
+  "826-eng": [51.5074, -0.1278], // London
+  "826-sco": [55.9533, -3.1883], // Edinburgh
+  "826-wal": [51.4816, -3.1791], // Cardiff
+  "826-nir": [54.5973, -5.9301], // Belfast
 }
 
 export const getCountryInfo = (id: string): CountryInfo | undefined =>

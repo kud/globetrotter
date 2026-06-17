@@ -1,7 +1,7 @@
 "use client"
 
 import { useWeather } from "@/lib/use-weather"
-import { weatherDesc, climateZone } from "@/lib/weather"
+import { weatherDesc, climateZone, biome } from "@/lib/weather"
 import { Stat } from "@/components/panel-stats"
 
 // Current local conditions for a coordinate — live weather (Open-Meteo) plus a
@@ -39,6 +39,10 @@ const Conditions = ({
         />
         <Stat label="Sky" value={weather && desc ? desc.label : "…"} />
         <Stat label="Climate (approx)" value={climateZone(lat)} />
+        <Stat
+          label="Biome (approx)"
+          value={biome(lat, weather?.tempC, weather?.humidity)}
+        />
         {weather?.elevationM != null && (
           <Stat
             label="Elevation"

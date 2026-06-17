@@ -56,5 +56,22 @@ export const climateZone = (lat: number) => {
   return "Polar"
 }
 
+// A rough biome/vegetation guess from latitude plus live temperature and
+// humidity (a weak dryness proxy). Honest flavour, not a survey — labelled
+// "approx" in the UI. Humidity/temp are optional (climate-only fallback).
+export const biome = (
+  lat: number,
+  tempC?: number | null,
+  humidity?: number | null,
+) => {
+  const a = Math.abs(lat)
+  if ((tempC != null && tempC <= -2) || a >= 66.5) return "Tundra / Polar"
+  if (a >= 55) return "Boreal forest (taiga)"
+  const arid = humidity != null && humidity < 40
+  if (a < 23.5) return arid ? "Tropical savanna" : "Tropical rainforest"
+  if (a < 35) return arid ? "Desert / arid" : "Subtropical forest"
+  return arid ? "Temperate grassland" : "Temperate forest"
+}
+
 export const weatherUrl = (lat: number, lng: number) =>
   `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=auto`

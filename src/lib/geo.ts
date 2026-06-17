@@ -3,6 +3,7 @@ import { geoCentroid } from "d3-geo"
 import type { Feature, Geometry, Position } from "geojson"
 import topology50 from "world-atlas/countries-50m.json"
 import topology110 from "world-atlas/countries-110m.json"
+import subunitsRaw from "@/data/subunits.json"
 
 export type CountryProps = { name: string }
 export type CountryFeature = Feature<Geometry, CountryProps> & { id: string }
@@ -187,6 +188,32 @@ const mergeById = (features: CountryFeature[]): CountryFeature[] => {
   return [...byId.values()]
 }
 
+// Constituent nations / subdivisions that travellers count as distinct visits
+// (e.g. England, Scotland, Wales, Northern Ireland). Unlike TERRITORY_SPLITS —
+// which routes separate island polygons by centroid — these are real internal
+// boundaries (Great Britain is one contiguous polygon), so the geometry is
+// bundled. Each id is "PARENT-xxx"; the parent admin0 feature is replaced by
+// its subunits. Data-driven: add more by extending src/data/subunits.json.
+const SUBUNITS = subunitsRaw as unknown as {
+  id: string
+  name: string
+  geometry: Geometry
+}[]
+const SUBUNIT_PARENTS = new Set(SUBUNITS.map((s) => s.id.split("-")[0]))
+
+const injectSubunits = (features: CountryFeature[]): CountryFeature[] => [
+  ...features.filter((f) => !SUBUNIT_PARENTS.has(f.id)),
+  ...SUBUNITS.map(
+    (s) =>
+      ({
+        type: "Feature",
+        id: s.id,
+        properties: { name: s.name },
+        geometry: s.geometry,
+      }) as CountryFeature,
+  ),
+]
+
 const buildFeatures = (topology: WorldTopology): CountryFeature[] => {
   const collection = feature(
     topology,
@@ -199,7 +226,7 @@ const buildFeatures = (topology: WorldTopology): CountryFeature[] => {
     .map((f) => ({ ...f, id: String(parseInt(String(f.id), 10)) }))
     // Drop polygons whose id isn't a number (a handful of unnamed artefacts).
     .filter((f) => f.id !== "NaN")
-  return mergeById(splitTerritories(normalized))
+  return injectSubunits(mergeById(splitTerritories(normalized)))
 }
 
 // 50m detail for the flat map (crisp coastlines; SVG handles the vertex count
