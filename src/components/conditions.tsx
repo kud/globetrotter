@@ -48,10 +48,7 @@ const Conditions = ({
         <Stat label="Sky" value={weather && desc ? desc.label : "…"} />
         <Stat label="Season" value={season(lat, month)} />
         <Stat label="Climate (approx)" value={climateZone(lat)} />
-        <Stat
-          label="Biome (approx)"
-          value={biome(lat, weather?.tempC, weather?.humidity)}
-        />
+        <Stat label="Biome (approx)" value={biome(lat, weather?.humidity)} />
         {monsoon && <Stat label="Rainy season" value="Monsoon" />}
         {weather?.elevationM != null && (
           <Stat

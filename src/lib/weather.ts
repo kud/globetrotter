@@ -56,18 +56,16 @@ export const climateZone = (lat: number) => {
   return "Polar"
 }
 
-// A rough biome/vegetation guess from latitude plus live temperature and
-// humidity (a weak dryness proxy). Honest flavour, not a survey — labelled
-// "approx" in the UI. Humidity/temp are optional (climate-only fallback).
-export const biome = (
-  lat: number,
-  tempC?: number | null,
-  humidity?: number | null,
-) => {
+// A rough biome/vegetation guess. Latitude is the primary signal (a stable
+// proxy for the long-term climate that defines vegetation); current humidity
+// only nudges the warmer bands toward arid. Today's *temperature* is
+// deliberately NOT used — a cold winter day doesn't make a temperate city
+// tundra. Honest flavour, labelled "approx" in the UI.
+export const biome = (lat: number, humidity?: number | null) => {
   const a = Math.abs(lat)
-  if ((tempC != null && tempC <= -2) || a >= 66.5) return "Tundra / Polar"
+  if (a >= 66.5) return "Tundra / Polar"
   if (a >= 55) return "Boreal forest (taiga)"
-  const arid = humidity != null && humidity < 40
+  const arid = humidity != null && humidity < 35
   if (a < 23.5) return arid ? "Tropical savanna" : "Tropical rainforest"
   if (a < 35) return arid ? "Desert / arid" : "Subtropical forest"
   return arid ? "Temperate grassland" : "Temperate forest"

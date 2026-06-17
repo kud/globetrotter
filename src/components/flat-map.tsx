@@ -154,6 +154,9 @@ const FlatMap = ({ size }: Props) => {
   const moon = useMoon()
   const sun = useSun()
   const [t, setT] = useState<Transform>({ k: 1, x: 0, y: 0 })
+  // Live zoom mirror so the focus effect (which only re-fires on focusId) reads
+  // the current scale rather than a value captured at the last focusId change.
+  const tkRef = useRef(t.k)
   const svgRef = useRef<SVGSVGElement>(null)
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null)
 
@@ -311,6 +314,10 @@ const FlatMap = ({ size }: Props) => {
     }
   }, [size.width, size.height])
 
+  useEffect(() => {
+    tkRef.current = t.k
+  }, [t.k])
+
   // Zoom-lock mode: clamp the scale to 1× (no zoom) and snap back to the world
   // view. Panning still works; only zooming is blocked. Restores the full
   // 1–24× range when unlocked.
@@ -336,8 +343,8 @@ const FlatMap = ({ size }: Props) => {
     const p = project(c.centroid)
     if (!p) return
     const [x, y] = p
-    if (!focusForce && t.k <= 1.05) return
-    const k = focusForce ? 2.5 : t.k
+    if (!focusForce && tkRef.current <= 1.05) return
+    const k = focusForce ? 2.5 : tkRef.current
     select(svgRef.current)
       .transition()
       .duration(700)
