@@ -18,20 +18,22 @@
   color-scheme: dark;
 }
 
+/* "Dim daylight": a muted slate canvas with soft off-white panels floating
+   above it — not stark white. Lower glare, more depth, easier on the eyes. */
 [data-theme="light"] {
-  --bg: #f4f6fa;
-  --panel: #ffffff;
-  --panel-2: #eef1f7;
-  --panel-hover: #e3e9f2;
-  --ink: #1b2436;
-  --ink-dim: #4c5a74;
-  --ink-faint: #7a899f;
-  --border: rgba(27, 36, 54, 0.14);
-  --border-strong: rgba(27, 36, 54, 0.26);
-  --accent: #2563c9;
+  --bg: #d6dce6;
+  --panel: #eceff5;
+  --panel-2: #e2e7f0;
+  --panel-hover: #d8dfea;
+  --ink: #1d2636;
+  --ink-dim: #515d76;
+  --ink-faint: #7c899f;
+  --border: rgba(30, 44, 74, 0.13);
+  --border-strong: rgba(30, 44, 74, 0.22);
+  --accent: #2f6ae0;
   --accent-ink: #ffffff;
-  --danger: #d22d2d;
-  --stage: radial-gradient(circle at 50% 25%, #fbfcfe 0%, #e6ecf5 78%);
+  --danger: #d8443c;
+  --stage: radial-gradient(circle at 50% 18%, #e7ebf2 0%, #cad3e0 85%);
   color-scheme: light;
 }
 
