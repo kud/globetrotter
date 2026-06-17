@@ -108,6 +108,13 @@ const FlatMap = ({ size }: Props) => {
   const openISS = useTravelStore((s) => s.openISS)
   const openMoon = useTravelStore((s) => s.openMoon)
   const openSun = useTravelStore((s) => s.openSun)
+  // Panel-open flags so the corresponding marker shows a selection ring, the
+  // way a selected country is highlighted.
+  const flightOpen = useTravelStore((s) => s.flightOpen)
+  const issOpen = useTravelStore((s) => s.issOpen)
+  const moonOpen = useTravelStore((s) => s.moonOpen)
+  const sunOpen = useTravelStore((s) => s.sunOpen)
+  const selectedPlace = useTravelStore((s) => s.place)
   const southUp = useTravelStore((s) => s.southUp)
   const liveSources = useAdvisoryStore((s) => s.sources)
   const statuses = useTravelStore((s) => s.statuses)
@@ -424,36 +431,51 @@ const FlatMap = ({ size }: Props) => {
               {clusters.map((cl) => {
                 if (cl.members.length === 1) {
                   const { p, color, x, y } = cl.members[0]
+                  const isOpen =
+                    selectedPlace?.name === p.name &&
+                    selectedPlace?.lat === p.lat &&
+                    selectedPlace?.lng === p.lng
                   return (
-                    <circle
-                      key={`${p.kind}-${p.name}`}
-                      cx={x}
-                      cy={y}
-                      r={3.2 / t.k}
-                      fill={color}
-                      stroke="var(--panel)"
-                      strokeWidth={1 / t.k}
-                      paintOrder="stroke"
-                      style={{ cursor: "pointer" }}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        openPlace(p)
-                      }}
-                      onMouseEnter={(e) =>
-                        setPlaceHover({
-                          title: `${p.code ? `${p.code} · ` : ""}${p.name}`,
-                          sub: `${p.city}, ${p.country}`,
-                          x: e.clientX,
-                          y: e.clientY,
-                        })
-                      }
-                      onMouseMove={(e) =>
-                        setPlaceHover((h) =>
-                          h ? { ...h, x: e.clientX, y: e.clientY } : h,
-                        )
-                      }
-                      onMouseLeave={() => setPlaceHover(null)}
-                    />
+                    <g key={`${p.kind}-${p.name}`}>
+                      {isOpen && (
+                        <circle
+                          cx={x}
+                          cy={y}
+                          r={6 / t.k}
+                          fill="none"
+                          stroke="var(--accent)"
+                          strokeWidth={1.6 / t.k}
+                        />
+                      )}
+                      <circle
+                        cx={x}
+                        cy={y}
+                        r={3.2 / t.k}
+                        fill={color}
+                        stroke="var(--panel)"
+                        strokeWidth={1 / t.k}
+                        paintOrder="stroke"
+                        style={{ cursor: "pointer" }}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openPlace(p)
+                        }}
+                        onMouseEnter={(e) =>
+                          setPlaceHover({
+                            title: `${p.code ? `${p.code} · ` : ""}${p.name}`,
+                            sub: `${p.city}, ${p.country}`,
+                            x: e.clientX,
+                            y: e.clientY,
+                          })
+                        }
+                        onMouseMove={(e) =>
+                          setPlaceHover((h) =>
+                            h ? { ...h, x: e.clientX, y: e.clientY } : h,
+                          )
+                        }
+                        onMouseLeave={() => setPlaceHover(null)}
+                      />
+                    </g>
                   )
                 }
                 return (
@@ -534,6 +556,14 @@ const FlatMap = ({ size }: Props) => {
               }}
             >
               <circle r={11 / t.k} fill="transparent" />
+              {flightOpen && (
+                <circle
+                  r={13 / t.k}
+                  fill="none"
+                  stroke="var(--accent)"
+                  strokeWidth={1.6 / t.k}
+                />
+              )}
               <path
                 d={PLANE_PATH}
                 transform={`scale(${1.05 / t.k}) translate(-12,-12)`}
@@ -555,6 +585,16 @@ const FlatMap = ({ size }: Props) => {
               onMouseEnter={() => setIssHover(true)}
               onMouseLeave={() => setIssHover(false)}
             >
+              {issOpen && (
+                <g transform={`scale(${1 / t.k})`}>
+                  <circle
+                    r={18}
+                    fill="none"
+                    stroke="var(--accent)"
+                    strokeWidth={1.6}
+                  />
+                </g>
+              )}
               <g
                 transform={`scale(${1 / t.k})${southUp ? " rotate(180)" : ""} translate(-15,-15)`}
                 dangerouslySetInnerHTML={{ __html: ISS_MARKUP }}
@@ -575,6 +615,14 @@ const FlatMap = ({ size }: Props) => {
               {/* A soft moonlight halo (faint outer glow + bright core) rather
                   than an emoji — abstract and map-like. Constant screen size. */}
               <g transform={`scale(${1 / t.k})`}>
+                {moonOpen && (
+                  <circle
+                    r={10}
+                    fill="none"
+                    stroke="var(--accent)"
+                    strokeWidth={1.4}
+                  />
+                )}
                 <circle r={7.5} fill="#dfe6ff" opacity={0.18} />
                 <circle r={5} fill="#eef2ff" opacity={0.45} />
                 <circle
@@ -602,6 +650,14 @@ const FlatMap = ({ size }: Props) => {
               {/* A warm sunlight halo at the subsolar point — same abstract
                   treatment as the Moon, in gold. Constant screen size. */}
               <g transform={`scale(${1 / t.k})`}>
+                {sunOpen && (
+                  <circle
+                    r={11}
+                    fill="none"
+                    stroke="var(--accent)"
+                    strokeWidth={1.4}
+                  />
+                )}
                 <circle r={8.5} fill="#ffd86b" opacity={0.2} />
                 <circle r={5.6} fill="#ffe89a" opacity={0.48} />
                 <circle

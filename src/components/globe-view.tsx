@@ -25,7 +25,6 @@ import { PLANE_PATH, flightTooltip, type LiveFlight } from "@/lib/flight"
 import { useISS } from "@/lib/use-iss"
 import { useMoon } from "@/lib/use-moon"
 import { useSun } from "@/lib/use-sun"
-import { phaseEmoji } from "@/lib/moon"
 import { ISS_MARKUP } from "@/lib/iss-mark"
 import type { Size } from "@/lib/use-element-size"
 import { CountryTooltip, type Hover } from "@/components/country-tooltip"
@@ -45,11 +44,25 @@ type GlobeLabel = {
 // The single react-globe.gl HTML layer carries the live plane, the selected
 // capital marker, and the ISS, discriminated by `kind`.
 type HtmlItem =
-  | { kind: "flight"; flight: LiveFlight }
+  | { kind: "flight"; flight: LiveFlight; selected: boolean }
   | { kind: "capital"; lat: number; lng: number; name: string }
-  | { kind: "iss"; lat: number; lng: number; altKm: number; speedKmh: number }
-  | { kind: "moon"; lat: number; lng: number; phase: number; phaseName: string }
-  | { kind: "sun"; lat: number; lng: number }
+  | {
+      kind: "iss"
+      lat: number
+      lng: number
+      altKm: number
+      speedKmh: number
+      selected: boolean
+    }
+  | {
+      kind: "moon"
+      lat: number
+      lng: number
+      phase: number
+      phaseName: string
+      selected: boolean
+    }
+  | { kind: "sun"; lat: number; lng: number; selected: boolean }
 
 // Module-level accessors so their identity is stable across re-renders — react
 // -globe.gl re-digests a layer whenever an accessor's reference changes, and the
@@ -106,6 +119,11 @@ const DEFAULT_POV = { lat: 25, lng: 10, altitude: 2.4 }
 // A round gold spot — the capital marker (matches the flat map's capital dot).
 const capitalMarkup = `<svg width="14" height="14" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5" fill="#ffffff" stroke="rgba(0,0,0,0.5)" stroke-width="1.2" paint-order="stroke"/></svg>`
 
+// Soft glow discs (matching the flat map) — pale-blue Moon, golden Sun — used
+// as the globe markers instead of emoji.
+const MOON_DISC = `<svg width="26" height="26" viewBox="0 0 26 26" style="display:block"><circle cx="13" cy="13" r="11" fill="#dfe6ff" opacity=".18"/><circle cx="13" cy="13" r="7.5" fill="#eef2ff" opacity=".45"/><circle cx="13" cy="13" r="5" fill="#fbfcff" opacity=".95" stroke="rgba(110,130,190,.6)" stroke-width="1" paint-order="stroke"/></svg>`
+const SUN_DISC = `<svg width="30" height="30" viewBox="0 0 30 30" style="display:block"><circle cx="15" cy="15" r="13" fill="#ffd86b" opacity=".2"/><circle cx="15" cy="15" r="8.5" fill="#ffe89a" opacity=".5"/><circle cx="15" cy="15" r="5.5" fill="#fff6da" opacity=".97" stroke="rgba(214,158,46,.7)" stroke-width="1" paint-order="stroke"/></svg>`
+
 const GlobeView = ({ size }: Props) => {
   const flight = useTravelStore((s) => s.flight)
   const liveSources = useAdvisoryStore((s) => s.sources)
@@ -117,6 +135,10 @@ const GlobeView = ({ size }: Props) => {
   const selectedId = useTravelStore((s) => s.selectedId)
   const select = useTravelStore((s) => s.select)
   const layerState = useTravelStore((s) => s.layers)
+  const flightOpen = useTravelStore((s) => s.flightOpen)
+  const issOpen = useTravelStore((s) => s.issOpen)
+  const moonOpen = useTravelStore((s) => s.moonOpen)
+  const sunOpen = useTravelStore((s) => s.sunOpen)
   const iss = useISS()
   const moon = useMoon()
   const sun = useSun()
@@ -220,7 +242,7 @@ const GlobeView = ({ size }: Props) => {
 
   const htmlItems = useMemo<HtmlItem[]>(() => {
     const items: HtmlItem[] = []
-    if (flight) items.push({ kind: "flight", flight })
+    if (flight) items.push({ kind: "flight", flight, selected: flightOpen })
     if (capital)
       items.push({
         kind: "capital",
@@ -235,6 +257,7 @@ const GlobeView = ({ size }: Props) => {
         lng: iss.lng,
         altKm: iss.altKm,
         speedKmh: iss.speedKmh,
+        selected: issOpen,
       })
     if (moon)
       items.push({
@@ -243,13 +266,24 @@ const GlobeView = ({ size }: Props) => {
         lng: moon.lng,
         phase: moon.phase,
         phaseName: moon.phaseName,
+        selected: moonOpen,
       })
-    if (sun) items.push({ kind: "sun", lat: sun.lat, lng: sun.lng })
+    if (sun)
+      items.push({ kind: "sun", lat: sun.lat, lng: sun.lng, selected: sunOpen })
     return items
-  }, [flight, capital, iss, moon, sun])
+  }, [flight, capital, iss, moon, sun, flightOpen, issOpen, moonOpen, sunOpen])
 
   const htmlElement = useCallback((d: object) => {
     const item = d as HtmlItem
+    // A circular accent ring around a marker whose panel is open — the globe
+    // equivalent of a selected country's highlight.
+    const addRing = (el: HTMLDivElement, selected: boolean) => {
+      if (!selected) return
+      const ring = document.createElement("div")
+      ring.style.cssText =
+        "position:absolute;left:50%;top:50%;width:38px;height:38px;transform:translate(-50%,-50%);border:2px solid var(--accent);border-radius:50%;pointer-events:none"
+      el.appendChild(ring)
+    }
     if (item.kind === "capital") {
       const el = document.createElement("div")
       el.style.pointerEvents = "none"
@@ -266,42 +300,42 @@ const GlobeView = ({ size }: Props) => {
       const el = document.createElement("div")
       el.className = "plane-hit"
       el.style.position = "relative"
-      el.style.padding = "8px"
+      el.style.padding = "10px"
       el.style.cursor = "pointer"
       el.style.pointerEvents = "auto"
-      el.style.fontSize = "26px"
-      el.style.lineHeight = "1"
-      el.style.filter = "drop-shadow(0 1px 3px rgba(0,0,0,.6))"
+      el.style.filter = "drop-shadow(0 1px 3px rgba(0,0,0,.5))"
       el.title = `Moon · ${item.phaseName}`
       el.onclick = () => useTravelStore.getState().openMoon()
-      el.innerHTML = `${phaseEmoji(item.phase)}<div class="plane-tip" style="position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:2px;white-space:nowrap;background:var(--panel);color:var(--ink);border:1px solid var(--border-strong);border-radius:8px;padding:4px 8px;box-shadow:0 8px 18px rgba(0,0,0,.35);font:13px var(--font-geist-sans),system-ui,sans-serif"><strong>🌙 Moon</strong><span style="margin-left:6px;color:var(--ink-dim);font-size:11px">${item.phaseName}</span></div>`
+      el.innerHTML = `${MOON_DISC}<div class="plane-tip" style="position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:2px;white-space:nowrap;background:var(--panel);color:var(--ink);border:1px solid var(--border-strong);border-radius:8px;padding:4px 8px;box-shadow:0 8px 18px rgba(0,0,0,.35);font:13px var(--font-geist-sans),system-ui,sans-serif"><strong>🌙 Moon</strong><span style="margin-left:6px;color:var(--ink-dim);font-size:11px">${item.phaseName}</span></div>`
+      addRing(el, item.selected)
       return el
     }
     if (item.kind === "sun") {
       const el = document.createElement("div")
       el.className = "plane-hit"
       el.style.position = "relative"
-      el.style.padding = "8px"
+      el.style.padding = "10px"
       el.style.cursor = "pointer"
       el.style.pointerEvents = "auto"
-      el.style.fontSize = "26px"
-      el.style.lineHeight = "1"
-      el.style.filter = "drop-shadow(0 0 6px rgba(255,200,80,.7))"
+      el.style.filter = "drop-shadow(0 0 6px rgba(255,200,80,.6))"
       el.title = "Sun · overhead here"
       el.onclick = () => useTravelStore.getState().openSun()
-      el.innerHTML = `☀️<div class="plane-tip" style="position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:2px;white-space:nowrap;background:var(--panel);color:var(--ink);border:1px solid var(--border-strong);border-radius:8px;padding:4px 8px;box-shadow:0 8px 18px rgba(0,0,0,.35);font:13px var(--font-geist-sans),system-ui,sans-serif"><strong>☀️ Sun</strong><span style="margin-left:6px;color:var(--ink-dim);font-size:11px">overhead here</span></div>`
+      el.innerHTML = `${SUN_DISC}<div class="plane-tip" style="position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:2px;white-space:nowrap;background:var(--panel);color:var(--ink);border:1px solid var(--border-strong);border-radius:8px;padding:4px 8px;box-shadow:0 8px 18px rgba(0,0,0,.35);font:13px var(--font-geist-sans),system-ui,sans-serif"><strong>☀️ Sun</strong><span style="margin-left:6px;color:var(--ink-dim);font-size:11px">overhead here</span></div>`
+      addRing(el, item.selected)
       return el
     }
     if (item.kind === "iss") {
       const el = document.createElement("div")
       el.className = "plane-hit"
       el.style.position = "relative"
-      el.style.padding = "10px"
+      // Generous padding enlarges the click/hover target around the small icon.
+      el.style.padding = "16px"
       el.style.cursor = "pointer"
       el.style.pointerEvents = "auto"
       el.title = `ISS · ${item.altKm} km · ${item.speedKmh} km/h`
       el.onclick = () => useTravelStore.getState().openISS()
       el.innerHTML = `${ISS_MARKUP}<div class="plane-tip" style="position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:2px;white-space:nowrap;background:var(--panel);color:var(--ink);border:1px solid var(--border-strong);border-radius:8px;padding:4px 8px;box-shadow:0 8px 18px rgba(0,0,0,.35);font:13px var(--font-geist-sans),system-ui,sans-serif"><strong>🛰 ISS</strong><span style="margin-left:6px;color:var(--ink-dim);font-size:11px">${item.altKm} km · ${item.speedKmh} km/h</span></div>`
+      addRing(el, item.selected)
       return el
     }
     const f = item.flight
@@ -334,6 +368,7 @@ const GlobeView = ({ size }: Props) => {
       if (a && b) rot = (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI + 90
     }
     el.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="display:block;transform:rotate(${rot}deg);filter:drop-shadow(0 1px 2px rgba(0,0,0,.55))"><path d="${PLANE_PATH}"/></svg><div class="plane-tip" style="position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:2px;white-space:nowrap;background:var(--panel);color:var(--ink);border:1px solid var(--border-strong);border-radius:8px;padding:4px 8px;box-shadow:0 8px 18px rgba(0,0,0,.35);font:13px var(--font-geist-sans),system-ui,sans-serif"><strong>✈ ${f.callsign}</strong><span style="margin-left:6px;color:var(--ink-dim);font-size:11px">${f.speedKmh} km/h</span></div>`
+    addRing(el, item.selected)
     return el
   }, [])
 
