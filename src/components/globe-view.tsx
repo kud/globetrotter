@@ -11,11 +11,7 @@ import {
 import Globe, { type GlobeMethods } from "react-globe.gl"
 import { MeshPhongMaterial } from "three"
 import { countryFeatures, countryById, type CountryFeature } from "@/lib/geo"
-import {
-  getCountryInfo,
-  getCapitalLatLng,
-  continentOf,
-} from "@/lib/country-info"
+import { getCountryInfo, getCapitalLatLng } from "@/lib/country-info"
 import { useTravelStore, useResolvedTheme } from "@/lib/store"
 import { MAP_PALETTE, statusFill } from "@/lib/colors"
 import { OCEANS } from "@/lib/oceans"
@@ -114,7 +110,7 @@ const GlobeView = ({ size }: Props) => {
         status: statuses[f.id],
         level: combinedLevel(f.id, liveSources),
         capital: getCountryInfo(f.id)?.capital ?? null,
-        continent: continentOf(getCountryInfo(f.id)),
+        subregion: getCountryInfo(f.id)?.subregion ?? null,
         x: mouse.current.x,
         y: mouse.current.y,
       })

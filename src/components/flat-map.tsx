@@ -8,11 +8,7 @@ import { zoom as d3zoom, zoomIdentity, type ZoomBehavior } from "d3-zoom"
 import "d3-transition"
 import { countryFeatures, type CountryFeature } from "@/lib/geo"
 import { OCEANS } from "@/lib/oceans"
-import {
-  getCountryInfo,
-  getCapitalLatLng,
-  continentOf,
-} from "@/lib/country-info"
+import { getCountryInfo, getCapitalLatLng } from "@/lib/country-info"
 import { useTravelStore, useResolvedTheme } from "@/lib/store"
 import { PLANE_PATH } from "@/lib/flight"
 import { useWhale } from "@/lib/use-whale"
@@ -131,7 +127,7 @@ const FlatMap = ({ size }: Props) => {
         status: statuses[f.id],
         level: combinedLevel(f.id, liveSources),
         capital: getCountryInfo(f.id)?.capital ?? null,
-        continent: continentOf(getCountryInfo(f.id)),
+        subregion: getCountryInfo(f.id)?.subregion ?? null,
         x: e.clientX,
         y: e.clientY,
       }),

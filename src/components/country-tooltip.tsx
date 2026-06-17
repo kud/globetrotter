@@ -10,7 +10,7 @@ export type Hover = {
   status: Status | undefined
   level: number | undefined
   capital: string | null
-  continent: string | null
+  subregion: string | null
   x: number
   y: number
 }
@@ -50,9 +50,9 @@ export const CountryTooltip = ({ hover }: { hover: Hover }) => {
             {t(statusKey(hover.status))}
           </span>
         </span>
-        {(hover.capital || hover.continent) && (
+        {(hover.capital || hover.subregion) && (
           <span className="text-[11px] text-[var(--ink-dim)]">
-            {[hover.capital, hover.continent].filter(Boolean).join(" · ")}
+            {[hover.capital, hover.subregion].filter(Boolean).join(" · ")}
           </span>
         )}
       </span>
