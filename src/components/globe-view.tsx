@@ -37,8 +37,8 @@ type GlobeLabel = {
   dot: number
 }
 
-// The single react-globe.gl HTML layer carries both the live plane and the
-// occasional breaching whale, discriminated by `kind`.
+// The single react-globe.gl HTML layer carries the live plane, the selected
+// capital marker, and the ISS, discriminated by `kind`.
 type HtmlItem =
   | { kind: "flight"; flight: LiveFlight }
   | { kind: "capital"; lat: number; lng: number; name: string }

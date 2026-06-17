@@ -92,39 +92,6 @@ body {
   }
 }
 
-/* A whale breaching from the sea — erupts nose-up, arcs over its apex, then
-   dives back under nose-down. */
-@keyframes whale-breach {
-  0% {
-    transform: translateY(85%) rotate(-30deg) scale(0.45);
-    opacity: 0;
-  }
-  12% {
-    opacity: 1;
-  }
-  40% {
-    transform: translateY(-60%) rotate(4deg) scale(1.08);
-    opacity: 1;
-  }
-  60% {
-    transform: translateY(-54%) rotate(24deg) scale(1.06);
-    opacity: 1;
-  }
-  88% {
-    opacity: 0.55;
-  }
-  100% {
-    transform: translateY(88%) rotate(48deg) scale(0.5);
-    opacity: 0;
-  }
-}
-
-.whale-breach {
-  display: inline-block;
-  animation: whale-breach 3.2s ease-in-out forwards;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
-}
-
 /* Globe plane: reveal the callsign/speed tooltip on hover of the (padded) hit area. */
 .plane-tip {
   opacity: 0;

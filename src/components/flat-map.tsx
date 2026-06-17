@@ -11,8 +11,8 @@ import { OCEANS } from "@/lib/oceans"
 import { getCountryInfo, getCapitalLatLng } from "@/lib/country-info"
 import { useTravelStore, useResolvedTheme } from "@/lib/store"
 import { PLANE_PATH } from "@/lib/flight"
-import { useWhale } from "@/lib/use-whale"
-import { WHALE_MARKUP } from "@/lib/whale-mark"
+import { useISS } from "@/lib/use-iss"
+import { ISS_MARKUP } from "@/lib/iss-mark"
 import {
   MAP_PALETTE,
   STATUS,
@@ -106,6 +106,7 @@ const CountryPaths = memo(function CountryPaths({
 const FlatMap = ({ size }: Props) => {
   const flight = useTravelStore((s) => s.flight)
   const openFlight = useTravelStore((s) => s.openFlight)
+  const openISS = useTravelStore((s) => s.openISS)
   const southUp = useTravelStore((s) => s.southUp)
   const liveSources = useAdvisoryStore((s) => s.sources)
   const statuses = useTravelStore((s) => s.statuses)
@@ -114,7 +115,7 @@ const FlatMap = ({ size }: Props) => {
   const selectCountry = useTravelStore((s) => s.select)
   const [hover, setHover] = useState<Hover | null>(null)
   const [planeHover, setPlaneHover] = useState(false)
-  const whale = useWhale()
+  const iss = useISS()
   const [t, setT] = useState<Transform>({ k: 1, x: 0, y: 0 })
   const svgRef = useRef<SVGSVGElement>(null)
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null)
@@ -225,7 +226,7 @@ const FlatMap = ({ size }: Props) => {
   if (size.width === 0) return null
 
   const flightPos = flight ? project([flight.lng, flight.lat]) : null
-  const whaleScreen = whale ? project([whale.lng, whale.lat]) : null
+  const issScreen = iss ? project([iss.lng, iss.lat]) : null
   const destPos =
     flight?.destination?.lat != null && flight.destination.lng != null
       ? project([flight.destination.lng, flight.destination.lat])
@@ -420,27 +421,25 @@ const FlatMap = ({ size }: Props) => {
         </div>
       )}
 
-      {whale && whaleScreen && (
-        <div
-          className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-1/2"
+      {iss && issScreen && (
+        <button
+          onClick={openISS}
+          title={`ISS · ${iss.altKm} km · ${iss.speedKmh} km/h`}
+          aria-label="International Space Station"
+          className="absolute z-10 -translate-x-1/2 -translate-y-1/2 cursor-pointer"
           style={
             southUp
               ? {
-                  left: size.width - (t.x + whaleScreen[0] * t.k),
-                  top: size.height - (t.y + whaleScreen[1] * t.k),
+                  left: size.width - (t.x + issScreen[0] * t.k),
+                  top: size.height - (t.y + issScreen[1] * t.k),
                 }
               : {
-                  left: t.x + whaleScreen[0] * t.k,
-                  top: t.y + whaleScreen[1] * t.k,
+                  left: t.x + issScreen[0] * t.k,
+                  top: t.y + issScreen[1] * t.k,
                 }
           }
-        >
-          <span
-            key={whale.key}
-            className="whale-breach block"
-            dangerouslySetInnerHTML={{ __html: WHALE_MARKUP }}
-          />
-        </div>
+          dangerouslySetInnerHTML={{ __html: ISS_MARKUP }}
+        />
       )}
     </div>
   )
