@@ -246,19 +246,39 @@ const FlatMap = ({ size }: Props) => {
   const clusters = useMemo(() => {
     const thr = 18 / t.k
     const thr2 = thr * thr
+    // Spatial-grid bucketing (cell = threshold) so each point only compares
+    // against its 3×3 neighbouring cells — O(n) instead of O(n²), which matters
+    // when all transport layers are on (~1.3k points) and we recompute on every
+    // zoom frame.
+    const cell = thr
+    const grid = new Map<string, number[]>()
+    for (let i = 0; i < places.length; i++) {
+      const k = `${Math.floor(places[i].x / cell)},${Math.floor(places[i].y / cell)}`
+      const bucket = grid.get(k)
+      if (bucket) bucket.push(i)
+      else grid.set(k, [i])
+    }
     const used = new Array(places.length).fill(false)
     const out: { x: number; y: number; members: Place[] }[] = []
     for (let i = 0; i < places.length; i++) {
       if (used[i]) continue
       used[i] = true
       const members = [places[i]]
-      for (let j = i + 1; j < places.length; j++) {
-        if (used[j]) continue
-        const dx = places[i].x - places[j].x
-        const dy = places[i].y - places[j].y
-        if (dx * dx + dy * dy < thr2) {
-          used[j] = true
-          members.push(places[j])
+      const cx = Math.floor(places[i].x / cell)
+      const cy = Math.floor(places[i].y / cell)
+      for (let gx = cx - 1; gx <= cx + 1; gx++) {
+        for (let gy = cy - 1; gy <= cy + 1; gy++) {
+          const bucket = grid.get(`${gx},${gy}`)
+          if (!bucket) continue
+          for (const j of bucket) {
+            if (used[j]) continue
+            const dx = places[i].x - places[j].x
+            const dy = places[i].y - places[j].y
+            if (dx * dx + dy * dy < thr2) {
+              used[j] = true
+              members.push(places[j])
+            }
+          }
         }
       }
       out.push({ x: members[0].x, y: members[0].y, members })
