@@ -12,6 +12,7 @@ import { getCountryInfo, getCapitalLatLng } from "@/lib/country-info"
 import { useTravelStore, useResolvedTheme } from "@/lib/store"
 import { PLANE_PATH } from "@/lib/flight"
 import { useWhale } from "@/lib/use-whale"
+import { WHALE_MARKUP } from "@/lib/whale-mark"
 import { MAP_PALETTE, STATUS, statusFill, type MapPalette } from "@/lib/colors"
 import { useAdvisoryStore, combinedLevel } from "@/lib/advisory-store"
 import type { Status } from "@/lib/store"
@@ -419,9 +420,11 @@ const FlatMap = ({ size }: Props) => {
                 }
           }
         >
-          <span key={whale.key} className="whale-breach block text-2xl">
-            🐋
-          </span>
+          <span
+            key={whale.key}
+            className="whale-breach block"
+            dangerouslySetInnerHTML={{ __html: WHALE_MARKUP }}
+          />
         </div>
       )}
     </div>

@@ -2,6 +2,7 @@ import { feature } from "topojson-client"
 import { geoCentroid } from "d3-geo"
 import type { Feature, Geometry, Position } from "geojson"
 import topology50 from "world-atlas/countries-50m.json"
+import topology110 from "world-atlas/countries-110m.json"
 
 export type CountryProps = { name: string }
 export type CountryFeature = Feature<Geometry, CountryProps> & { id: string }
@@ -201,10 +202,17 @@ const buildFeatures = (topology: WorldTopology): CountryFeature[] => {
   return mergeById(splitTerritories(normalized))
 }
 
-// 50m detail, shared by the flat map and the globe so coastlines stay crisp in
-// both. The globe extrudes these into 3D once at mount; interaction stays cheap
-// because selection is a colour swap, not an altitude (geometry) change.
+// 50m detail for the flat map (crisp coastlines; SVG handles the vertex count
+// cheaply and it zooms to 9×).
 export const countryFeatures: CountryFeature[] = buildFeatures(topology50)
+
+// 110m detail for the globe: ~7× fewer vertices. The globe re-renders the whole
+// scene every frame and ray-casts the meshes on every hover, so triangle count
+// directly drives GPU/CPU load — 50m there pegged Firefox. Borders are a touch
+// coarser at globe zoom, which is an acceptable trade for smoothness.
+export const globeCountryFeatures: CountryFeature[] = buildFeatures(
+  topology110 as unknown as WorldTopology,
+)
 
 export type Country = { id: string; name: string; centroid: [number, number] }
 

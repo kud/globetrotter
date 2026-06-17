@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic"
 import { useEffect, useState } from "react"
-import { motion } from "framer-motion"
 import { useTravelStore } from "@/lib/store"
 import { useAdvisoryStore } from "@/lib/advisory-store"
 import { useElementSize } from "@/lib/use-element-size"
@@ -194,12 +193,6 @@ const MapStage = () => {
   const view = useTravelStore((s) => s.view)
   const [ref, size] = useElementSize<HTMLDivElement>()
   const ready = size.width > 0 && size.height > 0
-  // Once the globe has been shown it stays mounted (just hidden) so switching
-  // back never re-tessellates its 50m 3D geometry — the build happens once.
-  // Adjusting state during render (React's sanctioned latch pattern) avoids
-  // both a setState-in-effect and a ref write during render.
-  const [globeMounted, setGlobeMounted] = useState(false)
-  if (view === "globe" && !globeMounted) setGlobeMounted(true)
   useFlightPoller()
 
   useEffect(() => {
@@ -225,23 +218,21 @@ const MapStage = () => {
         {!ready && <MapLoader />}
         {ready && (
           <>
-            <motion.div
+            {/* Flat map stays mounted (cheap SVG) and just hides under the
+                globe. The globe is mounted ONLY while it's the active view and
+                unmounts on leave — so its WebGL render loop never runs in the
+                background slowing the tab, and flat-map-only users never load
+                three.js at all. */}
+            <div
               className="absolute inset-0"
-              animate={{ opacity: view === "map" ? 1 : 0 }}
-              transition={{ duration: 0.25 }}
-              style={{ pointerEvents: view === "map" ? "auto" : "none" }}
+              style={{ visibility: view === "globe" ? "hidden" : "visible" }}
             >
               <FlatMap size={size} />
-            </motion.div>
-            {globeMounted && (
-              <motion.div
-                className="absolute inset-0"
-                animate={{ opacity: view === "globe" ? 1 : 0 }}
-                transition={{ duration: 0.25 }}
-                style={{ pointerEvents: view === "globe" ? "auto" : "none" }}
-              >
+            </div>
+            {view === "globe" && (
+              <div className="absolute inset-0">
                 <GlobeView size={size} />
-              </motion.div>
+              </div>
             )}
           </>
         )}

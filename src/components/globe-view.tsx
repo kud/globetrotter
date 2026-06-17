@@ -10,7 +10,11 @@ import {
 } from "react"
 import Globe, { type GlobeMethods } from "react-globe.gl"
 import { MeshPhongMaterial } from "three"
-import { countryFeatures, countryById, type CountryFeature } from "@/lib/geo"
+import {
+  globeCountryFeatures,
+  countryById,
+  type CountryFeature,
+} from "@/lib/geo"
 import { getCountryInfo, getCapitalLatLng } from "@/lib/country-info"
 import { useTravelStore, useResolvedTheme } from "@/lib/store"
 import { MAP_PALETTE, statusFill } from "@/lib/colors"
@@ -18,6 +22,7 @@ import { OCEANS } from "@/lib/oceans"
 import { useAdvisoryStore, combinedLevel } from "@/lib/advisory-store"
 import { PLANE_PATH, flightTooltip, type LiveFlight } from "@/lib/flight"
 import { useWhale } from "@/lib/use-whale"
+import { WHALE_MARKUP } from "@/lib/whale-mark"
 import type { Size } from "@/lib/use-element-size"
 import { CountryTooltip, type Hover } from "@/components/country-tooltip"
 
@@ -44,7 +49,7 @@ type FlightArc = {
 type HtmlItem =
   | { kind: "flight"; flight: LiveFlight }
   | { kind: "whale"; lat: number; lng: number; key: number }
-  | { kind: "capital"; lat: number; lng: number }
+  | { kind: "capital"; lat: number; lng: number; name: string }
 
 // The viewer's coordinates, resolved once and reused so re-entering the globe
 // view never re-prompts for permission or re-runs the fly-to animation.
@@ -141,30 +146,21 @@ const GlobeView = ({ size }: Props) => {
     return { name: info.capital, lat: coord[0], lng: coord[1] }
   }, [selectedId])
 
-  // Always-on billboard labels: the ocean names (parity with the flat map's sea
-  // text) plus the selected capital's name (its marker is the star icon below).
-  const labels = useMemo<GlobeLabel[]>(() => {
-    const oceans: GlobeLabel[] = OCEANS.map((o) => ({
-      text: o.name,
-      lat: o.at[1],
-      lng: o.at[0],
-      color: palette.oceanLabel,
-      size: 0.62,
-      dot: 0,
-    }))
-    if (!capital) return oceans
-    return [
-      ...oceans,
-      {
-        text: capital.name,
-        lat: capital.lat,
-        lng: capital.lng,
-        color: "#ffce4d",
-        size: 0.78,
+  // Ocean names as billboard sprite labels (plain ASCII, so the sprite font is
+  // fine). The capital name is rendered as a DOM element instead — sprite text
+  // drops accented glyphs (e.g. "Brasília" → "Bras?lia").
+  const labels = useMemo<GlobeLabel[]>(
+    () =>
+      OCEANS.map((o) => ({
+        text: o.name,
+        lat: o.at[1],
+        lng: o.at[0],
+        color: palette.oceanLabel,
+        size: 0.62,
         dot: 0,
-      },
-    ]
-  }, [capital, palette.oceanLabel])
+      })),
+    [palette.oceanLabel],
+  )
 
   // A dashed great-circle arc from the live flight to its destination, mirroring
   // the flat map's flight path line.
@@ -185,7 +181,12 @@ const GlobeView = ({ size }: Props) => {
     const items: HtmlItem[] = []
     if (flight) items.push({ kind: "flight", flight })
     if (capital)
-      items.push({ kind: "capital", lat: capital.lat, lng: capital.lng })
+      items.push({
+        kind: "capital",
+        lat: capital.lat,
+        lng: capital.lng,
+        name: capital.name,
+      })
     if (whale)
       items.push({
         kind: "whale",
@@ -201,16 +202,20 @@ const GlobeView = ({ size }: Props) => {
     if (item.kind === "whale") {
       const el = document.createElement("div")
       el.className = "whale-breach"
-      el.style.fontSize = "26px"
       el.style.pointerEvents = "none"
-      el.textContent = "🐋"
+      el.innerHTML = WHALE_MARKUP
       return el
     }
     if (item.kind === "capital") {
       const el = document.createElement("div")
       el.style.pointerEvents = "none"
-      el.style.filter = "drop-shadow(0 1px 2px rgba(0,0,0,.5))"
-      el.innerHTML = capitalMarkup
+      el.style.display = "flex"
+      el.style.alignItems = "center"
+      el.style.gap = "4px"
+      el.style.whiteSpace = "nowrap"
+      el.style.filter = "drop-shadow(0 1px 2px rgba(0,0,0,.6))"
+      // Name rendered as DOM text (not a sprite label) so accents survive.
+      el.innerHTML = `${capitalMarkup}<span style="font:600 12px var(--font-geist-sans),system-ui,sans-serif;color:#ffce4d;text-shadow:0 1px 2px rgba(0,0,0,.7)">${item.name}</span>`
       return el
     }
     const f = item.flight
@@ -305,7 +310,7 @@ const GlobeView = ({ size }: Props) => {
         showAtmosphere
         atmosphereColor={palette.atmosphere}
         atmosphereAltitude={0.18}
-        polygonsData={countryFeatures}
+        polygonsData={globeCountryFeatures}
         polygonAltitude={0.01}
         polygonCapColor={capColor}
         polygonSideColor={() => "rgba(0,0,0,0)"}
@@ -330,9 +335,8 @@ const GlobeView = ({ size }: Props) => {
         arcEndLng={(d) => (d as FlightArc).endLng}
         arcColor={() => "#5aa9ff"}
         arcStroke={0.4}
-        arcDashLength={0.4}
+        arcDashLength={0.5}
         arcDashGap={0.18}
-        arcDashAnimateTime={4000}
         arcAltitudeAutoScale={0.3}
         arcsTransitionDuration={0}
         htmlElementsData={htmlItems}
