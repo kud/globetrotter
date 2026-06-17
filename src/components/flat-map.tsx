@@ -8,7 +8,12 @@ import { zoom as d3zoom, zoomIdentity, type ZoomBehavior } from "d3-zoom"
 import "d3-transition"
 import { countryFeatures, countryById, type CountryFeature } from "@/lib/geo"
 import { OCEANS, oceanTip } from "@/lib/oceans"
-import { LAYERS, type TransportPoint } from "@/lib/transport"
+import {
+  LAYERS,
+  KIND_ICON,
+  KIND_COLOR,
+  type TransportPoint,
+} from "@/lib/transport"
 import { getCountryInfo, getCapitalLatLng } from "@/lib/country-info"
 import { useTravelStore, useResolvedTheme } from "@/lib/store"
 import { PLANE_PATH } from "@/lib/flight"
@@ -123,6 +128,11 @@ const FlatMap = ({ size }: Props) => {
     x: number
     y: number
   } | null>(null)
+  const [clusterMenu, setClusterMenu] = useState<{
+    members: TransportPoint[]
+    x: number
+    y: number
+  } | null>(null)
   const iss = useISS()
   const [t, setT] = useState<Transform>({ k: 1, x: 0, y: 0 })
   const svgRef = useRef<SVGSVGElement>(null)
@@ -207,6 +217,35 @@ const FlatMap = ({ size }: Props) => {
     }
     return out
   }, [layerState, project])
+
+  // Group markers that sit within ~18px of each other on screen so dense areas
+  // (LA's two ports, Tokyo's airport+station+port) collapse into one spot the
+  // user can click to disambiguate — instead of needing to zoom in to separate
+  // them. The threshold is in base coordinates, so it shrinks as you zoom in
+  // and clusters naturally split back into individual markers.
+  type Place = (typeof places)[number]
+  const clusters = useMemo(() => {
+    const thr = 18 / t.k
+    const thr2 = thr * thr
+    const used = new Array(places.length).fill(false)
+    const out: { x: number; y: number; members: Place[] }[] = []
+    for (let i = 0; i < places.length; i++) {
+      if (used[i]) continue
+      used[i] = true
+      const members = [places[i]]
+      for (let j = i + 1; j < places.length; j++) {
+        if (used[j]) continue
+        const dx = places[i].x - places[j].x
+        const dy = places[i].y - places[j].y
+        if (dx * dx + dy * dy < thr2) {
+          used[j] = true
+          members.push(places[j])
+        }
+      }
+      out.push({ x: members[0].x, y: members[0].y, members })
+    }
+    return out
+  }, [places, t.k])
 
   useEffect(() => {
     if (!svgRef.current) return
@@ -340,37 +379,80 @@ const FlatMap = ({ size }: Props) => {
             onMove={onMove}
             onLeave={onLeave}
           />
-          {places.map(({ p, color, x, y }) => (
-            <circle
-              key={`${p.kind}-${p.name}`}
-              cx={x}
-              cy={y}
-              r={3.2 / t.k}
-              fill={color}
-              stroke="var(--panel)"
-              strokeWidth={1 / t.k}
-              paintOrder="stroke"
-              style={{ cursor: "pointer" }}
-              onClick={(e) => {
-                e.stopPropagation()
-                openPlace(p)
-              }}
-              onMouseEnter={(e) =>
-                setPlaceHover({
-                  title: `${p.code ? `${p.code} · ` : ""}${p.name}`,
-                  sub: `${p.city}, ${p.country}`,
-                  x: e.clientX,
-                  y: e.clientY,
-                })
-              }
-              onMouseMove={(e) =>
-                setPlaceHover((h) =>
-                  h ? { ...h, x: e.clientX, y: e.clientY } : h,
-                )
-              }
-              onMouseLeave={() => setPlaceHover(null)}
-            />
-          ))}
+          {clusters.map((cl) => {
+            if (cl.members.length === 1) {
+              const { p, color, x, y } = cl.members[0]
+              return (
+                <circle
+                  key={`${p.kind}-${p.name}`}
+                  cx={x}
+                  cy={y}
+                  r={3.2 / t.k}
+                  fill={color}
+                  stroke="var(--panel)"
+                  strokeWidth={1 / t.k}
+                  paintOrder="stroke"
+                  style={{ cursor: "pointer" }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    openPlace(p)
+                  }}
+                  onMouseEnter={(e) =>
+                    setPlaceHover({
+                      title: `${p.code ? `${p.code} · ` : ""}${p.name}`,
+                      sub: `${p.city}, ${p.country}`,
+                      x: e.clientX,
+                      y: e.clientY,
+                    })
+                  }
+                  onMouseMove={(e) =>
+                    setPlaceHover((h) =>
+                      h ? { ...h, x: e.clientX, y: e.clientY } : h,
+                    )
+                  }
+                  onMouseLeave={() => setPlaceHover(null)}
+                />
+              )
+            }
+            return (
+              <g
+                key={`cluster-${cl.x.toFixed(1)}-${cl.y.toFixed(1)}`}
+                transform={`translate(${cl.x},${cl.y})`}
+                style={{ cursor: "pointer" }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setPlaceHover(null)
+                  setClusterMenu({
+                    members: cl.members.map((m) => m.p),
+                    x: e.clientX,
+                    y: e.clientY,
+                  })
+                }}
+              >
+                <g transform={southUp ? "rotate(180)" : undefined}>
+                  <circle
+                    r={6.5 / t.k}
+                    fill="var(--accent)"
+                    stroke="var(--panel)"
+                    strokeWidth={1.4 / t.k}
+                    paintOrder="stroke"
+                  />
+                  <text
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fill="var(--accent-ink)"
+                    style={{
+                      fontSize: `${7.5 / t.k}px`,
+                      fontWeight: 700,
+                      pointerEvents: "none",
+                    }}
+                  >
+                    {cl.members.length}
+                  </text>
+                </g>
+              </g>
+            )
+          })}
           {flight && flightPos && (
             <g
               transform={`translate(${flightPos[0]},${flightPos[1]}) rotate(${flight.heading})`}
@@ -486,6 +568,43 @@ const FlatMap = ({ size }: Props) => {
             {placeHover.sub}
           </span>
         </div>
+      )}
+
+      {clusterMenu && (
+        <>
+          <div
+            className="fixed inset-0 z-20"
+            onClick={() => setClusterMenu(null)}
+          />
+          <div
+            className="fixed z-30 max-h-72 w-60 -translate-x-1/2 -translate-y-[108%] overflow-y-auto rounded-xl border border-[var(--border-strong)] bg-[var(--panel)] p-1.5 shadow-2xl"
+            style={{ left: clusterMenu.x, top: clusterMenu.y }}
+          >
+            <p className="px-2 py-1 text-[11px] uppercase tracking-wide text-[var(--ink-dim)]">
+              {clusterMenu.members.length} places here
+            </p>
+            {clusterMenu.members.map((m) => (
+              <button
+                key={`${m.kind}-${m.name}`}
+                onClick={() => {
+                  openPlace(m)
+                  setClusterMenu(null)
+                }}
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors hover:bg-[var(--panel-hover)]"
+              >
+                <span style={{ color: KIND_COLOR[m.kind] }}>
+                  {KIND_ICON[m.kind]}
+                </span>
+                <span className="flex min-w-0 flex-col">
+                  <span className="truncate text-[var(--ink)]">{m.name}</span>
+                  <span className="truncate text-[11px] text-[var(--ink-dim)]">
+                    {m.city}, {m.country}
+                  </span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </>
       )}
 
       {flight && flightPos && planeHover && (
