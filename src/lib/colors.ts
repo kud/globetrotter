@@ -34,10 +34,6 @@ export type MapPalette = {
   sphereStroke: string
   polygonStroke: string
   atmosphere: string
-  // Cap fill for the selected country. On the globe this carries the selection
-  // cue that the country's altitude used to (lifting a country forces a costly
-  // geometry rebuild, so selection is now a cheap colour swap instead).
-  selected: string
   // Crisp, slightly brighter border drawn around the selected country.
   selectedStroke: string
   // Ocean/sea label text. The flat map uses the --ink-dim CSS var, but the
@@ -53,7 +49,6 @@ export const MAP_PALETTE: Record<ResolvedTheme, MapPalette> = {
     sphereStroke: "rgba(120,160,255,0.25)",
     polygonStroke: "#0b1020",
     atmosphere: "#5aa9ff",
-    selected: "#3b82f6",
     selectedStroke: "#7fb6ff",
     oceanLabel: "rgba(150,175,225,0.6)",
   },
@@ -64,7 +59,6 @@ export const MAP_PALETTE: Record<ResolvedTheme, MapPalette> = {
     sphereStroke: "rgba(40,70,120,0.28)",
     polygonStroke: "#9aa6ba",
     atmosphere: "#9cc2ff",
-    selected: "#2563eb",
     selectedStroke: "#93c0ff",
     oceanLabel: "rgba(70,100,150,0.75)",
   },
@@ -88,4 +82,15 @@ export const withAlpha = (hex: string, alpha: number) => {
   const g = (n >> 8) & 255
   const b = n & 255
   return `rgba(${r},${g},${b},${alpha})`
+}
+
+// Blend a hex colour toward white by `amount` (0–1). Used to brighten the
+// selected country's status fill so selection reads alongside the status hue.
+export const lighten = (hex: string, amount: number) => {
+  const n = parseInt(hex.slice(1), 16)
+  const mix = (c: number) => Math.round(c + (255 - c) * amount)
+  const r = mix((n >> 16) & 255)
+  const g = mix((n >> 8) & 255)
+  const b = mix(n & 255)
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`
 }

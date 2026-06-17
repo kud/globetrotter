@@ -1,0 +1,174 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e4]:
+        - paragraph [ref=e5]: ✦ Atlas of you
+        - heading "Globetrotter" [level=1] [ref=e6]:
+          - img [ref=e7]
+          - text: Globetrotter
+        - paragraph [ref=e10]: Where in the world have you been?
+      - generic [ref=e11]:
+        - generic [ref=e12]:
+          - generic [ref=e13]: "0"
+          - generic [ref=e14]: visited
+        - generic [ref=e15]:
+          - generic [ref=e16]: "0"
+          - generic [ref=e17]: wishlist
+        - generic [ref=e18]:
+          - generic [ref=e19]: 0%
+          - generic [ref=e20]: of the world
+      - generic [ref=e22]:
+        - generic [ref=e23]: visited
+        - generic [ref=e24]: 0 / 195 · 0%
+      - generic [ref=e26]:
+        - generic [ref=e27]: Find a country
+        - generic [ref=e28]:
+          - img
+          - textbox "Find a country" [active] [ref=e29]:
+            - /placeholder: Start typing… e.g. Japan
+      - paragraph [ref=e30]: Click any country to see facts, safety advice and set its status.
+      - generic [ref=e31]:
+        - heading "Your countries" [level=2] [ref=e32]
+        - paragraph [ref=e107]: Nothing marked yet — click the map to begin.
+        - list [ref=e34]
+      - generic [ref=e35]:
+        - heading "Save file" [level=2] [ref=e36]
+        - paragraph [ref=e37]: Your map lives in this browser. Export a backup or move it to another device.
+        - generic [ref=e38]:
+          - button "Copy" [ref=e39]:
+            - img [ref=e40]
+            - text: Copy
+          - button "Paste" [ref=e43]:
+            - img [ref=e44]
+            - text: Paste
+        - generic [ref=e47]:
+          - button "Export" [ref=e48]:
+            - img [ref=e49]
+            - text: Export
+          - button "Import" [ref=e51]:
+            - img [ref=e52]
+            - text: Import
+        - button "Reset everything" [ref=e54]:
+          - img [ref=e55]
+          - text: Reset everything
+      - generic [ref=e59]: Built with Next.js, three.js & D3 · facts © mledoze · advisories © US & Canada · flights © adsb.lol · photos © Planespotters · your data never leaves your device
+    - main [ref=e60]:
+      - generic [ref=e61]:
+        - generic [ref=e62]:
+          - button "Flat map" [ref=e63] [cursor=pointer]:
+            - img [ref=e64]
+            - text: Flat map
+          - button "Globe" [ref=e66] [cursor=pointer]:
+            - img [ref=e67]
+            - text: Globe
+        - generic [ref=e70]:
+          - generic [ref=e108] [cursor=pointer]:
+            - checkbox "Auto-spin" [ref=e109]
+            - text: Auto-spin
+          - button "Language" [ref=e72]:
+            - generic [ref=e73]: 🇬🇧
+            - text: EN
+            - generic [ref=e74]: ▼
+          - button "Toggle theme" [ref=e75]:
+            - img [ref=e76]
+      - generic [ref=e79]:
+        - generic:
+          - generic:
+            - img "Flat world map":
+              - generic:
+                - generic:
+                  - generic: Pacific Ocean
+                  - generic: Pacific Ocean
+                  - generic: Atlantic Ocean
+                  - generic: Atlantic Ocean
+                  - generic: Indian Ocean
+                  - generic: Arctic Ocean
+                  - generic: Mediterranean Sea
+                - generic:
+                  - generic: Brasília
+            - generic:
+              - button "Zoom in":
+                - img
+              - button "Zoom out":
+                - img
+              - button "Reset view":
+                - img
+            - generic:
+              - generic: 🐋
+        - generic [ref=e115]:
+          - generic:
+            - generic "✈ UAL2748 · 0.3 km · 241 km/h":
+              - img
+            - generic:
+              - img
+              - text: Brasília
+      - button "Flip the map (north / south up)" [ref=e90]:
+        - img [ref=e91]:
+          - generic [ref=e97]: "N"
+      - complementary [ref=e118]:
+        - generic [ref=e119]:
+          - generic [ref=e120]:
+            - generic [ref=e121]: 🇧🇷
+            - heading "Brazil" [level=2] [ref=e122]
+            - paragraph [ref=e123]: South America
+          - button "Close" [ref=e124]: ✕
+        - generic [ref=e125]:
+          - button "Not yet" [ref=e126]:
+            - img [ref=e127]
+            - text: Not yet
+          - button "Wishlist" [ref=e129]:
+            - img [ref=e130]
+            - text: Wishlist
+          - button "Visited" [ref=e132]:
+            - img [ref=e133]
+            - text: Visited
+          - button "Blocked" [ref=e135]:
+            - img [ref=e136]
+            - text: Blocked
+        - generic [ref=e139]:
+          - heading "Travel safety" [level=3] [ref=e140]
+          - generic [ref=e141]:
+            - generic "US State Dept · Exercise increased caution" [ref=e142]: 🇺🇸 Level 2 · Caution
+            - generic "Canada · Exercise increased caution" [ref=e143]: 🇨🇦 Level 2 · Caution
+          - paragraph [ref=e144]: Exercise increased caution
+          - generic [ref=e145]:
+            - link "🇫🇷 France ↗" [ref=e146] [cursor=pointer]:
+              - /url: https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs/conseils-par-pays-destination/bresil/
+            - link "🇬🇧 United Kingdom ↗" [ref=e147] [cursor=pointer]:
+              - /url: https://www.gov.uk/foreign-travel-advice/brazil
+            - link "🇺🇸 United States ↗" [ref=e148] [cursor=pointer]:
+              - /url: https://travel.state.gov/content/travel/en/traveladvisories/traveladvisories/brazil-travel-advisory.html
+            - link "🇨🇦 Canada ↗" [ref=e149] [cursor=pointer]:
+              - /url: https://travel.gc.ca/destinations/brazil
+          - paragraph [ref=e150]: Live from US + Canada · 17/06/2026
+        - generic [ref=e151]:
+          - generic [ref=e152]:
+            - generic [ref=e153]: Capital
+            - generic [ref=e154]: Brasília
+          - generic [ref=e155]:
+            - generic [ref=e156]: Region
+            - generic [ref=e157]: Americas
+          - generic [ref=e158]:
+            - generic [ref=e159]: Population
+            - generic [ref=e160]: 213.4M
+          - generic [ref=e161]:
+            - generic [ref=e162]: Languages
+            - generic [ref=e163]: Portuguese
+          - generic [ref=e164]:
+            - generic [ref=e165]: Currency
+            - generic [ref=e166]: Brazilian real (R$)
+          - generic [ref=e167]:
+            - generic [ref=e168]: Area
+            - generic [ref=e169]: 8,515,767 km²
+        - generic [ref=e170]:
+          - heading "About" [level=3] [ref=e171]
+          - paragraph [ref=e172]: Brazil, officially the Federative Republic of Brazil, is the largest country in South America. It is also the world's fifth-largest country by area and the seventh-largest by population, with over 213 million people. Brazil is a federation composed of 26 states and a Federal District, which hosts the capital, Brasília. Its most populous city is São Paulo, followed by Rio de Janeiro. Brazil has the most Portuguese speakers in the world and is the only country in the Americas where Portuguese is an official language.
+          - link "Read on Wikipedia ↗" [ref=e173] [cursor=pointer]:
+            - /url: https://en.wikipedia.org/wiki/Brazil
+        - generic [ref=e174]:
+          - generic [ref=e175]: Your notes
+          - textbox "Your notes" [ref=e176]:
+            - /placeholder: Anything else worth remembering?
+  - button "Open Next.js Dev Tools" [ref=e103] [cursor=pointer]:
+    - img [ref=e104]
+  - alert [ref=e117]

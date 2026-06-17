@@ -13,7 +13,13 @@ import { useTravelStore, useResolvedTheme } from "@/lib/store"
 import { PLANE_PATH } from "@/lib/flight"
 import { useWhale } from "@/lib/use-whale"
 import { WHALE_MARKUP } from "@/lib/whale-mark"
-import { MAP_PALETTE, STATUS, statusFill, type MapPalette } from "@/lib/colors"
+import {
+  MAP_PALETTE,
+  STATUS,
+  statusFill,
+  lighten,
+  type MapPalette,
+} from "@/lib/colors"
 import { useAdvisoryStore, combinedLevel } from "@/lib/advisory-store"
 import type { Status } from "@/lib/store"
 import type { Size } from "@/lib/use-element-size"
@@ -79,7 +85,11 @@ const CountryPaths = memo(function CountryPaths({
           <path
             key={f.id}
             d={d}
-            fill={statusFill(status, palette)}
+            fill={
+              selected
+                ? lighten(statusFill(status, palette), 0.32)
+                : statusFill(status, palette)
+            }
             stroke={stroke}
             strokeWidth={selected ? 1.6 : patterned ? 1 : 0.5}
             strokeDasharray={dash}

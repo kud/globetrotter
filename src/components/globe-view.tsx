@@ -17,7 +17,7 @@ import {
 } from "@/lib/geo"
 import { getCountryInfo, getCapitalLatLng } from "@/lib/country-info"
 import { useTravelStore, useResolvedTheme } from "@/lib/store"
-import { MAP_PALETTE, statusFill } from "@/lib/colors"
+import { MAP_PALETTE, statusFill, lighten } from "@/lib/colors"
 import { OCEANS } from "@/lib/oceans"
 import { useAdvisoryStore, combinedLevel } from "@/lib/advisory-store"
 import { PLANE_PATH, flightTooltip, type LiveFlight } from "@/lib/flight"
@@ -92,8 +92,10 @@ const GlobeView = ({ size }: Props) => {
   const capColor = useCallback(
     (d: object) => {
       const f = d as CountryFeature
-      if (f.id === selectedId) return palette.selected
-      return statusFill(statuses[f.id], palette)
+      const fill = statusFill(statuses[f.id], palette)
+      // Selection keeps the status colour (so you still see visited/blocked/etc.)
+      // but brightened; the accent stroke completes the cue.
+      return f.id === selectedId ? lighten(fill, 0.32) : fill
     },
     [statuses, selectedId, palette],
   )
@@ -200,10 +202,15 @@ const GlobeView = ({ size }: Props) => {
   const htmlElement = useCallback((d: object) => {
     const item = d as HtmlItem
     if (item.kind === "whale") {
+      // react-globe.gl positions this element via its `transform`; the breach
+      // animation must live on an inner element or it overrides the positioning
+      // and the whale flies off into space.
       const el = document.createElement("div")
-      el.className = "whale-breach"
       el.style.pointerEvents = "none"
-      el.innerHTML = WHALE_MARKUP
+      const inner = document.createElement("div")
+      inner.className = "whale-breach"
+      inner.innerHTML = WHALE_MARKUP
+      el.appendChild(inner)
       return el
     }
     if (item.kind === "capital") {
