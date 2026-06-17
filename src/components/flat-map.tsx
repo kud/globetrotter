@@ -19,6 +19,7 @@ import { useTravelStore, useResolvedTheme } from "@/lib/store"
 import { PLANE_PATH } from "@/lib/flight"
 import { useISS } from "@/lib/use-iss"
 import { useMoon } from "@/lib/use-moon"
+import { useSun } from "@/lib/use-sun"
 import { ISS_MARKUP } from "@/lib/iss-mark"
 import {
   MAP_PALETTE,
@@ -106,6 +107,7 @@ const FlatMap = ({ size }: Props) => {
   const openFlight = useTravelStore((s) => s.openFlight)
   const openISS = useTravelStore((s) => s.openISS)
   const openMoon = useTravelStore((s) => s.openMoon)
+  const openSun = useTravelStore((s) => s.openSun)
   const southUp = useTravelStore((s) => s.southUp)
   const liveSources = useAdvisoryStore((s) => s.sources)
   const statuses = useTravelStore((s) => s.statuses)
@@ -121,6 +123,7 @@ const FlatMap = ({ size }: Props) => {
   const [planeHover, setPlaneHover] = useState(false)
   const [issHover, setIssHover] = useState(false)
   const [moonHover, setMoonHover] = useState(false)
+  const [sunHover, setSunHover] = useState(false)
   const [oceanHover, setOceanHover] = useState<{
     name: string
     tip: string
@@ -140,6 +143,7 @@ const FlatMap = ({ size }: Props) => {
   } | null>(null)
   const iss = useISS()
   const moon = useMoon()
+  const sun = useSun()
   const [t, setT] = useState<Transform>({ k: 1, x: 0, y: 0 })
   const svgRef = useRef<SVGSVGElement>(null)
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null)
@@ -324,6 +328,7 @@ const FlatMap = ({ size }: Props) => {
   const flightPos = flight ? project([flight.lng, flight.lat]) : null
   const issScreen = iss ? project([iss.lng, iss.lat]) : null
   const moonScreen = moon ? project([moon.lng, moon.lat]) : null
+  const sunScreen = sun ? project([sun.lng, sun.lat]) : null
 
   // Infinite horizontal wrap: one world is exactly `size.width` wide, so we tile
   // copies of the base map at ±world offsets. Render only the copies the
@@ -570,14 +575,41 @@ const FlatMap = ({ size }: Props) => {
               {/* A soft moonlight halo (faint outer glow + bright core) rather
                   than an emoji — abstract and map-like. Constant screen size. */}
               <g transform={`scale(${1 / t.k})`}>
-                <circle r={11} fill="#dfe6ff" opacity={0.16} />
-                <circle r={6.5} fill="#eef2ff" opacity={0.4} />
+                <circle r={7.5} fill="#dfe6ff" opacity={0.18} />
+                <circle r={5} fill="#eef2ff" opacity={0.45} />
                 <circle
                   r={3.4}
                   fill="#fbfcff"
                   opacity={0.95}
                   stroke="rgba(110,130,190,0.55)"
                   strokeWidth={0.6}
+                  paintOrder="stroke"
+                />
+              </g>
+            </g>
+          )}
+          {sun && sunScreen && (
+            <g
+              className="cursor-pointer"
+              style={{
+                transform: `translate(${sunScreen[0]}px, ${sunScreen[1]}px)`,
+                transition: "transform 60s linear",
+              }}
+              onClick={openSun}
+              onMouseEnter={() => setSunHover(true)}
+              onMouseLeave={() => setSunHover(false)}
+            >
+              {/* A warm sunlight halo at the subsolar point — same abstract
+                  treatment as the Moon, in gold. Constant screen size. */}
+              <g transform={`scale(${1 / t.k})`}>
+                <circle r={8.5} fill="#ffd86b" opacity={0.2} />
+                <circle r={5.6} fill="#ffe89a" opacity={0.48} />
+                <circle
+                  r={3.8}
+                  fill="#fff6da"
+                  opacity={0.97}
+                  stroke="rgba(214,158,46,0.7)"
+                  strokeWidth={0.7}
                   paintOrder="stroke"
                 />
               </g>
@@ -693,6 +725,16 @@ const FlatMap = ({ size }: Props) => {
           icon="🌙"
           title="Moon"
           detail={moon.phaseName}
+        />
+      )}
+
+      {sun && sunScreen && sunHover && (
+        <HoverTip
+          position="absolute"
+          style={markerTipPos(sunScreen)}
+          icon="☀️"
+          title="Sun"
+          detail="Overhead here"
         />
       )}
     </div>

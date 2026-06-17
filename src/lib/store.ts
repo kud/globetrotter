@@ -80,6 +80,7 @@ export type TravelState = TravelData & {
   flightOpen: boolean
   issOpen: boolean
   moonOpen: boolean
+  sunOpen: boolean
   ocean: string | null
   layers: Record<LayerId, boolean>
   place: TransportPoint | null
@@ -90,6 +91,8 @@ export type TravelState = TravelData & {
   closeISS: () => void
   openMoon: () => void
   closeMoon: () => void
+  openSun: () => void
+  closeSun: () => void
   openOcean: (name: string) => void
   closeOcean: () => void
   toggleLayer: (id: LayerId) => void
@@ -131,6 +134,7 @@ export const useTravelStore = create<TravelState>()(
       flightOpen: false,
       issOpen: false,
       moonOpen: false,
+      sunOpen: false,
       ocean: null,
       layers: { airports: false, stations: false, ports: false },
       place: null,
@@ -184,6 +188,7 @@ export const useTravelStore = create<TravelState>()(
           flightOpen: true,
           issOpen: false,
           moonOpen: false,
+          sunOpen: false,
           ocean: null,
           place: null,
           selectedId: null,
@@ -194,6 +199,7 @@ export const useTravelStore = create<TravelState>()(
           issOpen: true,
           flightOpen: false,
           moonOpen: false,
+          sunOpen: false,
           ocean: null,
           place: null,
           selectedId: null,
@@ -202,6 +208,7 @@ export const useTravelStore = create<TravelState>()(
       openMoon: () =>
         set({
           moonOpen: true,
+          sunOpen: false,
           issOpen: false,
           flightOpen: false,
           ocean: null,
@@ -209,12 +216,24 @@ export const useTravelStore = create<TravelState>()(
           selectedId: null,
         }),
       closeMoon: () => set({ moonOpen: false }),
+      openSun: () =>
+        set({
+          sunOpen: true,
+          moonOpen: false,
+          issOpen: false,
+          flightOpen: false,
+          ocean: null,
+          place: null,
+          selectedId: null,
+        }),
+      closeSun: () => set({ sunOpen: false }),
       openOcean: (ocean) =>
         set({
           ocean,
           flightOpen: false,
           issOpen: false,
           moonOpen: false,
+          sunOpen: false,
           place: null,
           selectedId: null,
         }),
@@ -230,6 +249,7 @@ export const useTravelStore = create<TravelState>()(
           flightOpen: false,
           issOpen: false,
           moonOpen: false,
+          sunOpen: false,
           selectedId: null,
         }),
       closePlace: () => set({ place: null }),
@@ -242,6 +262,7 @@ export const useTravelStore = create<TravelState>()(
           flightOpen: false,
           issOpen: false,
           moonOpen: false,
+          sunOpen: false,
           ocean: null,
           place: null,
         }),
@@ -253,6 +274,7 @@ export const useTravelStore = create<TravelState>()(
           flightOpen: false,
           issOpen: false,
           moonOpen: false,
+          sunOpen: false,
           ocean: null,
           place: null,
         }),

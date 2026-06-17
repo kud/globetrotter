@@ -24,6 +24,7 @@ import { useAdvisoryStore, combinedLevel } from "@/lib/advisory-store"
 import { PLANE_PATH, flightTooltip, type LiveFlight } from "@/lib/flight"
 import { useISS } from "@/lib/use-iss"
 import { useMoon } from "@/lib/use-moon"
+import { useSun } from "@/lib/use-sun"
 import { phaseEmoji } from "@/lib/moon"
 import { ISS_MARKUP } from "@/lib/iss-mark"
 import type { Size } from "@/lib/use-element-size"
@@ -48,6 +49,7 @@ type HtmlItem =
   | { kind: "capital"; lat: number; lng: number; name: string }
   | { kind: "iss"; lat: number; lng: number; altKm: number; speedKmh: number }
   | { kind: "moon"; lat: number; lng: number; phase: number; phaseName: string }
+  | { kind: "sun"; lat: number; lng: number }
 
 // Module-level accessors so their identity is stable across re-renders — react
 // -globe.gl re-digests a layer whenever an accessor's reference changes, and the
@@ -86,7 +88,7 @@ const htmlLng = (d: object) =>
     : (d as { lng: number }).lng
 const htmlAltitude = (d: object) => {
   const kind = (d as HtmlItem).kind
-  return kind === "moon"
+  return kind === "moon" || kind === "sun"
     ? 0.55
     : kind === "iss"
       ? 0.12
@@ -117,6 +119,7 @@ const GlobeView = ({ size }: Props) => {
   const layerState = useTravelStore((s) => s.layers)
   const iss = useISS()
   const moon = useMoon()
+  const sun = useSun()
   const [hover, setHover] = useState<Hover | null>(null)
   const mouse = useRef({ x: 0, y: 0 })
 
@@ -241,8 +244,9 @@ const GlobeView = ({ size }: Props) => {
         phase: moon.phase,
         phaseName: moon.phaseName,
       })
+    if (sun) items.push({ kind: "sun", lat: sun.lat, lng: sun.lng })
     return items
-  }, [flight, capital, iss, moon])
+  }, [flight, capital, iss, moon, sun])
 
   const htmlElement = useCallback((d: object) => {
     const item = d as HtmlItem
@@ -271,6 +275,21 @@ const GlobeView = ({ size }: Props) => {
       el.title = `Moon · ${item.phaseName}`
       el.onclick = () => useTravelStore.getState().openMoon()
       el.innerHTML = `${phaseEmoji(item.phase)}<div class="plane-tip" style="position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:2px;white-space:nowrap;background:var(--panel);color:var(--ink);border:1px solid var(--border-strong);border-radius:8px;padding:4px 8px;box-shadow:0 8px 18px rgba(0,0,0,.35);font:13px var(--font-geist-sans),system-ui,sans-serif"><strong>🌙 Moon</strong><span style="margin-left:6px;color:var(--ink-dim);font-size:11px">${item.phaseName}</span></div>`
+      return el
+    }
+    if (item.kind === "sun") {
+      const el = document.createElement("div")
+      el.className = "plane-hit"
+      el.style.position = "relative"
+      el.style.padding = "8px"
+      el.style.cursor = "pointer"
+      el.style.pointerEvents = "auto"
+      el.style.fontSize = "26px"
+      el.style.lineHeight = "1"
+      el.style.filter = "drop-shadow(0 0 6px rgba(255,200,80,.7))"
+      el.title = "Sun · overhead here"
+      el.onclick = () => useTravelStore.getState().openSun()
+      el.innerHTML = `☀️<div class="plane-tip" style="position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:2px;white-space:nowrap;background:var(--panel);color:var(--ink);border:1px solid var(--border-strong);border-radius:8px;padding:4px 8px;box-shadow:0 8px 18px rgba(0,0,0,.35);font:13px var(--font-geist-sans),system-ui,sans-serif"><strong>☀️ Sun</strong><span style="margin-left:6px;color:var(--ink-dim);font-size:11px">overhead here</span></div>`
       return el
     }
     if (item.kind === "iss") {

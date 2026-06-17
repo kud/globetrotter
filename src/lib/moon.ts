@@ -117,6 +117,26 @@ export const moonInfo = (date: Date): MoonInfo => {
   }
 }
 
+export type SunInfo = {
+  lat: number // subsolar latitude (°)
+  lng: number // subsolar longitude (°)
+  distanceKm: number
+}
+
+// The subsolar point: the geographic lat/lng where the Sun is at the zenith
+// (local solar noon) right now — the natural place to pin a Sun marker.
+export const sunInfo = (date: Date): SunInfo => {
+  const d = toDays(date)
+  const s = sunCoords(d)
+  const lat = s.dec / rad
+  let lng = ((s.ra - gmst(d)) / rad) % 360
+  lng = ((((lng + 180) % 360) + 360) % 360) - 180
+  // Earth–Sun distance from the orbit's mean anomaly (low-precision, ~±1000 km).
+  const g = rad * (357.529 + 0.98560028 * d)
+  const au = 1.00014 - 0.01671 * Math.cos(g) - 0.00014 * Math.cos(2 * g)
+  return { lat, lng, distanceKm: Math.round(au * 149597870.7) }
+}
+
 // A glyph for the current phase, handy for markers/placeholders.
 export const phaseEmoji = (phase: number) => {
   const idx = Math.round(phase * 8) % 8

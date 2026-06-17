@@ -13,6 +13,7 @@ import CountryPanel from "@/components/country-panel"
 import FlightPanel from "@/components/flight-panel"
 import ISSPanel from "@/components/iss-panel"
 import MoonPanel from "@/components/moon-panel"
+import SunPanel from "@/components/sun-panel"
 import OceanPanel from "@/components/ocean-panel"
 import PlacePanel from "@/components/place-panel"
 import LayersControl from "@/components/layers-control"
@@ -248,6 +249,7 @@ const MapStage = () => {
       <FlightPanel />
       <ISSPanel />
       <MoonPanel />
+      <SunPanel />
       <OceanPanel />
       <PlacePanel />
     </main>
