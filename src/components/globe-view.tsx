@@ -343,7 +343,7 @@ const GlobeView = ({ size }: Props) => {
         globeMaterial={oceanMaterial}
         showAtmosphere
         atmosphereColor={palette.atmosphere}
-        atmosphereAltitude={0.18}
+        atmosphereAltitude={0.1}
         polygonsData={globeCountryFeatures}
         polygonAltitude={0.01}
         polygonCapColor={capColor}
