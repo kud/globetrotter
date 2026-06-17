@@ -34,8 +34,6 @@ export type MapPalette = {
   sphereStroke: string
   polygonStroke: string
   atmosphere: string
-  // Crisp, slightly brighter border drawn around the selected country.
-  selectedStroke: string
   // Ocean/sea label text. The flat map uses the --ink-dim CSS var, but the
   // globe's 3D sprite labels need a plain colour value.
   oceanLabel: string
@@ -49,7 +47,6 @@ export const MAP_PALETTE: Record<ResolvedTheme, MapPalette> = {
     sphereStroke: "rgba(120,160,255,0.25)",
     polygonStroke: "#0b1020",
     atmosphere: "#5aa9ff",
-    selectedStroke: "#7fb6ff",
     oceanLabel: "rgba(150,175,225,0.6)",
   },
   light: {
@@ -59,7 +56,6 @@ export const MAP_PALETTE: Record<ResolvedTheme, MapPalette> = {
     sphereStroke: "rgba(40,70,120,0.28)",
     polygonStroke: "#9aa6ba",
     atmosphere: "#9cc2ff",
-    selectedStroke: "#93c0ff",
     oceanLabel: "rgba(70,100,150,0.75)",
   },
 }

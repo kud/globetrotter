@@ -65,18 +65,13 @@ const CountryPaths = memo(function CountryPaths({
       {paths.map(({ f, d }) => {
         const selected = f.id === selectedId
         const status = statuses[f.id]
-        // Subtle textural cue per status: wishlist dashed, blocked dotted (both
-        // in their own colour), visited/selected solid.
-        const patterned =
-          !selected && (status === "wishlist" || status === "blocked")
-        const stroke = selected
-          ? palette.selectedStroke
-          : status === "wishlist" || status === "blocked"
-            ? STATUS[status]
-            : palette.polygonStroke
-        const dash = selected
-          ? undefined
-          : status === "wishlist"
+        // Borders convey STATUS only (wishlist dashed, blocked dotted, in their
+        // own colour); selection is the brightened fill — no extra outline,
+        // which on island-heavy countries just traced every coast in bright blue.
+        const patterned = status === "wishlist" || status === "blocked"
+        const stroke = patterned ? STATUS[status] : palette.polygonStroke
+        const dash =
+          status === "wishlist"
             ? "3 2.5"
             : status === "blocked"
               ? "0.5 3"
@@ -91,7 +86,7 @@ const CountryPaths = memo(function CountryPaths({
                 : statusFill(status, palette)
             }
             stroke={stroke}
-            strokeWidth={selected ? 1.6 : patterned ? 1 : 0.5}
+            strokeWidth={patterned ? 1 : 0.5}
             strokeDasharray={dash}
             strokeLinejoin="round"
             strokeLinecap="round"

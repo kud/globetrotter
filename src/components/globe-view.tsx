@@ -125,14 +125,6 @@ const GlobeView = ({ size }: Props) => {
     [statuses, liveSources],
   )
 
-  const strokeColor = useCallback(
-    (d: object) =>
-      (d as CountryFeature).id === selectedId
-        ? palette.selectedStroke
-        : palette.polygonStroke,
-    [selectedId, palette],
-  )
-
   const handleClick = useCallback(
     (d: object) => select((d as CountryFeature).id),
     [select],
@@ -324,7 +316,7 @@ const GlobeView = ({ size }: Props) => {
         polygonAltitude={0.01}
         polygonCapColor={capColor}
         polygonSideColor={() => "rgba(0,0,0,0)"}
-        polygonStrokeColor={strokeColor}
+        polygonStrokeColor={palette.polygonStroke}
         onPolygonHover={onPolygonHover}
         onPolygonClick={handleClick}
         polygonsTransitionDuration={150}
