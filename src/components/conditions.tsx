@@ -39,6 +39,15 @@ const Conditions = ({
         />
         <Stat label="Sky" value={weather && desc ? desc.label : "…"} />
         <Stat label="Climate (approx)" value={climateZone(lat)} />
+        {weather?.elevationM != null && (
+          <Stat
+            label="Elevation"
+            value={`${Math.round(weather.elevationM)} m`}
+          />
+        )}
+        {weather?.timezone && (
+          <Stat label="Timezone" value={weather.timezone.replace(/_/g, " ")} />
+        )}
       </div>
     </section>
   )

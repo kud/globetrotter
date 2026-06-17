@@ -562,6 +562,10 @@ const CountryPanel = () => {
                   value={`${numberFmt.format(info.area)} km²`}
                 />
               )}
+              {info.callingCode && (
+                <Fact label={t("fact.calling")} value={info.callingCode} />
+              )}
+              {info.tld && <Fact label={t("fact.tld")} value={info.tld} />}
             </section>
           )}
 

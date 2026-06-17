@@ -6,6 +6,8 @@ export type Weather = {
   humidity: number
   windKmh: number
   code: number
+  elevationM: number | null
+  timezone: string | null
 }
 
 // WMO weather codes → a short label and a glyph.
@@ -55,4 +57,4 @@ export const climateZone = (lat: number) => {
 }
 
 export const weatherUrl = (lat: number, lng: number) =>
-  `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code`
+  `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=auto`

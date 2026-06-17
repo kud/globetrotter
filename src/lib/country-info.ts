@@ -15,6 +15,8 @@ export type CountryInfo = {
   flag: string
   area: number | null
   latlng: [number, number] | null
+  callingCode?: string // e.g. "+33"
+  tld?: string // internet domain, e.g. ".fr"
   // For split territories: the ccn3 id of the sovereign country whose travel
   // advisory applies (feeds are per-country, e.g. Canary Islands → Spain).
   parent?: string

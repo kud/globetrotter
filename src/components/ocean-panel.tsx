@@ -91,9 +91,15 @@ const OceanPanel = () => {
                 value={`${(meta.areaKm2 / 1e6).toFixed(1)}M km²`}
               />
               <Stat
+                label="Avg depth"
+                value={`${meta.avgDepthM.toLocaleString()} m`}
+              />
+              <Stat
                 label="Max depth"
                 value={`${meta.maxDepthM.toLocaleString()} m`}
               />
+              <Stat label="Volume" value={`${meta.volumeMkm3}M km³`} />
+              <Stat label="Deepest point" value={meta.deepest} />
             </div>
           )}
 

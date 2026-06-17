@@ -70,6 +70,10 @@ const SunPanel = () => {
               label="Overhead at"
               value={sun ? `${sun.lat.toFixed(1)}, ${sun.lng.toFixed(1)}` : "—"}
             />
+            <Stat
+              label="Season (N. hem.)"
+              value={sun ? sun.seasonNorth : "—"}
+            />
           </div>
 
           <p className="text-sm leading-relaxed text-[var(--ink-dim)]">

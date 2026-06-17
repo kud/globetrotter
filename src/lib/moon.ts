@@ -72,6 +72,8 @@ const phaseName = (phase: number) => {
   return PHASE_NAMES[0]
 }
 
+const SYNODIC = 29.530588853 // mean synodic month, days
+
 export type MoonInfo = {
   lat: number // sublunar latitude (°)
   lng: number // sublunar longitude (°)
@@ -79,6 +81,8 @@ export type MoonInfo = {
   fraction: number // illuminated fraction, 0..1
   phase: number // 0=new, 0.5=full, 1=new
   phaseName: string
+  ageDays: number // days since the last new moon
+  daysToFull: number // days until the next full moon
 }
 
 export const moonInfo = (date: Date): MoonInfo => {
@@ -114,13 +118,20 @@ export const moonInfo = (date: Date): MoonInfo => {
     fraction,
     phase,
     phaseName: phaseName(phase),
+    ageDays: phase * SYNODIC,
+    daysToFull: (phase <= 0.5 ? 0.5 - phase : 1.5 - phase) * SYNODIC,
   }
 }
+
+// Northern-hemisphere season from the Sun's apparent ecliptic longitude
+// (0°=March equinox, 90°=June solstice, …). Southern hemisphere is opposite.
+const SEASONS_N = ["Spring", "Summer", "Autumn", "Winter"] as const
 
 export type SunInfo = {
   lat: number // subsolar latitude (°)
   lng: number // subsolar longitude (°)
   distanceKm: number
+  seasonNorth: string // astronomical season, northern hemisphere
 }
 
 // The subsolar point: the geographic lat/lng where the Sun is at the zenith
@@ -134,7 +145,16 @@ export const sunInfo = (date: Date): SunInfo => {
   // Earth–Sun distance from the orbit's mean anomaly (low-precision, ~±1000 km).
   const g = rad * (357.529 + 0.98560028 * d)
   const au = 1.00014 - 0.01671 * Math.cos(g) - 0.00014 * Math.cos(2 * g)
-  return { lat, lng, distanceKm: Math.round(au * 149597870.7) }
+  // Apparent solar ecliptic longitude → season.
+  const C = rad * (1.9148 * Math.sin(g) + 0.02 * Math.sin(2 * g))
+  const lambda =
+    ((((g + C + rad * 102.9372 + Math.PI) / rad) % 360) + 360) % 360
+  return {
+    lat,
+    lng,
+    distanceKm: Math.round(au * 149597870.7),
+    seasonNorth: SEASONS_N[Math.floor(lambda / 90) % 4],
+  }
 }
 
 // A glyph for the current phase, handy for markers/placeholders.

@@ -74,6 +74,20 @@ const MoonPanel = () => {
             />
             <Stat label="Phase" value={moon ? moon.phaseName : "—"} />
             <Stat
+              label="Age"
+              value={moon ? `${moon.ageDays.toFixed(1)} days` : "—"}
+            />
+            <Stat
+              label="Next full moon"
+              value={
+                moon
+                  ? moon.daysToFull < 0.5
+                    ? "Today"
+                    : `in ${Math.round(moon.daysToFull)} days`
+                  : "—"
+              }
+            />
+            <Stat
               label="Overhead at"
               value={
                 moon ? `${moon.lat.toFixed(1)}, ${moon.lng.toFixed(1)}` : "—"

@@ -25,6 +25,8 @@ export const useWeather = (
               humidity: d.current.relative_humidity_2m,
               windKmh: d.current.wind_speed_10m,
               code: d.current.weather_code,
+              elevationM: typeof d.elevation === "number" ? d.elevation : null,
+              timezone: typeof d.timezone === "string" ? d.timezone : null,
             },
           })
         }
