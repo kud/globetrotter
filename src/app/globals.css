@@ -124,3 +124,13 @@ body {
   animation: whale-breach 3.2s ease-in-out forwards;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
 }
+
+/* Globe plane: reveal the callsign/speed tooltip on hover of the (padded) hit area. */
+.plane-tip {
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  pointer-events: none;
+}
+.plane-hit:hover .plane-tip {
+  opacity: 1;
+}

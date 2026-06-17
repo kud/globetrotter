@@ -41,12 +41,12 @@ const AirportEnd = ({ airport }: { airport: AirportLike }) => {
       target="_blank"
       rel="noopener noreferrer"
       title="Open airport on Wikipedia"
-      className="min-w-0 rounded-lg px-1.5 py-0.5 text-center transition-colors hover:bg-[var(--panel-hover)] hover:text-[var(--accent)]"
+      className="min-w-0 flex-1 basis-0 rounded-lg px-1.5 py-0.5 text-center transition-colors hover:bg-[var(--panel-hover)] hover:text-[var(--accent)]"
     >
       {body}
     </a>
   ) : (
-    <div className="min-w-0 text-center">{body}</div>
+    <div className="min-w-0 flex-1 basis-0 text-center">{body}</div>
   )
 }
 

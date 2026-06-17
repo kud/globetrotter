@@ -219,9 +219,13 @@ const GlobeView = ({ size }: Props) => {
     }
     const f = item.flight
     const el = document.createElement("div")
+    el.className = "plane-hit"
     el.title = flightTooltip(f)
     el.style.color = "#ffffff"
     el.style.cursor = "pointer"
+    el.style.position = "relative"
+    // Generous padding enlarges the click/hover target around the small icon.
+    el.style.padding = "12px"
     // Opt in to pointer events so the click hits the plane (opens the flight
     // panel) instead of falling through to the globe's polygon click.
     el.style.pointerEvents = "auto"
@@ -242,7 +246,7 @@ const GlobeView = ({ size }: Props) => {
       const b = globe.getScreenCoords(lat2, lng2)
       if (a && b) rot = (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI + 90
     }
-    el.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="transform:rotate(${rot}deg);filter:drop-shadow(0 1px 2px rgba(0,0,0,.55))"><path d="${PLANE_PATH}"/></svg>`
+    el.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="display:block;transform:rotate(${rot}deg);filter:drop-shadow(0 1px 2px rgba(0,0,0,.55))"><path d="${PLANE_PATH}"/></svg><div class="plane-tip" style="position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:2px;white-space:nowrap;background:var(--panel);color:var(--ink);border:1px solid var(--border-strong);border-radius:8px;padding:4px 8px;box-shadow:0 8px 18px rgba(0,0,0,.35);font:13px var(--font-geist-sans),system-ui,sans-serif"><strong>✈ ${f.callsign}</strong><span style="margin-left:6px;color:var(--ink-dim);font-size:11px">${f.speedKmh} km/h</span></div>`
     return el
   }, [])
 
