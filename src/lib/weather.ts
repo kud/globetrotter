@@ -73,5 +73,50 @@ export const biome = (
   return arid ? "Temperate grassland" : "Temperate forest"
 }
 
+// Meteorological season for the location's hemisphere (month is 0-indexed).
+const NORTH_SEASON = [
+  "Winter",
+  "Winter",
+  "Spring",
+  "Spring",
+  "Spring",
+  "Summer",
+  "Summer",
+  "Summer",
+  "Autumn",
+  "Autumn",
+  "Autumn",
+  "Winter",
+] as const
+const OPPOSITE: Record<string, string> = {
+  Winter: "Summer",
+  Summer: "Winter",
+  Spring: "Autumn",
+  Autumn: "Spring",
+}
+export const season = (lat: number, month: number) => {
+  const n = NORTH_SEASON[month]
+  return lat >= 0 ? n : OPPOSITE[n]
+}
+
+// Curated monsoon / rainy-season belts: [west, south, east, north] bbox + the
+// months (0-indexed) the wet season typically runs. Approximate — for flavour.
+const MONSOON: { box: [number, number, number, number]; months: number[] }[] = [
+  { box: [68, 8, 97, 30], months: [5, 6, 7, 8] }, // South Asia
+  { box: [92, -10, 130, 25], months: [4, 5, 6, 7, 8, 9] }, // Southeast Asia
+  { box: [-17, 7, 30, 17], months: [5, 6, 7, 8] }, // West Africa
+  { box: [100, 22, 146, 40], months: [5, 6, 7] }, // East Asia
+  { box: [-90, -5, -45, 12], months: [11, 0, 1, 2] }, // N. South America
+]
+export const isMonsoon = (lat: number, lng: number, month: number) =>
+  MONSOON.some(
+    (m) =>
+      lng >= m.box[0] &&
+      lat >= m.box[1] &&
+      lng <= m.box[2] &&
+      lat <= m.box[3] &&
+      m.months.includes(month),
+  )
+
 export const weatherUrl = (lat: number, lng: number) =>
   `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=auto`

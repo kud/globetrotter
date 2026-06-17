@@ -1,7 +1,13 @@
 "use client"
 
 import { useWeather } from "@/lib/use-weather"
-import { weatherDesc, climateZone, biome } from "@/lib/weather"
+import {
+  weatherDesc,
+  climateZone,
+  biome,
+  season,
+  isMonsoon,
+} from "@/lib/weather"
 import { Stat } from "@/components/panel-stats"
 
 // Current local conditions for a coordinate — live weather (Open-Meteo) plus a
@@ -17,6 +23,8 @@ const Conditions = ({
   const weather = useWeather(lat, lng)
   if (lat == null || lng == null) return null
   const desc = weather ? weatherDesc(weather.code) : null
+  const month = new Date().getMonth()
+  const monsoon = isMonsoon(lat, lng, month)
 
   return (
     <section className="flex flex-col gap-2">
@@ -38,11 +46,13 @@ const Conditions = ({
           value={weather ? `${Math.round(weather.windKmh)} km/h` : "…"}
         />
         <Stat label="Sky" value={weather && desc ? desc.label : "…"} />
+        <Stat label="Season" value={season(lat, month)} />
         <Stat label="Climate (approx)" value={climateZone(lat)} />
         <Stat
           label="Biome (approx)"
           value={biome(lat, weather?.tempC, weather?.humidity)}
         />
+        {monsoon && <Stat label="Rainy season" value="Monsoon" />}
         {weather?.elevationM != null && (
           <Stat
             label="Elevation"

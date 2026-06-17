@@ -88,6 +88,10 @@ const MoonPanel = () => {
               }
             />
             <Stat
+              label="Apparent size"
+              value={moon ? `${moon.angularArcmin.toFixed(1)}′` : "—"}
+            />
+            <Stat
               label="Overhead at"
               value={
                 moon ? `${moon.lat.toFixed(1)}, ${moon.lng.toFixed(1)}` : "—"

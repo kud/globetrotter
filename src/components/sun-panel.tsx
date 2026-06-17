@@ -74,6 +74,14 @@ const SunPanel = () => {
               label="Season (N. hem.)"
               value={sun ? sun.seasonNorth : "—"}
             />
+            <Stat
+              label="Distance (AU)"
+              value={sun ? sun.distanceAu.toFixed(3) : "—"}
+            />
+            <Stat
+              label="Apparent size"
+              value={sun ? `${sun.angularArcmin.toFixed(1)}′` : "—"}
+            />
           </div>
 
           <p className="text-sm leading-relaxed text-[var(--ink-dim)]">

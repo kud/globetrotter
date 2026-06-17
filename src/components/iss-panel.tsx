@@ -20,6 +20,10 @@ const ISSPanel = () => {
   const open = useTravelStore((s) => s.issOpen)
   const close = () => useTravelStore.getState().closeISS()
   const iss = useISS()
+  // Orbital period from the altitude (Kepler's third law, μ_Earth = 398600.4418).
+  const periodMin = iss
+    ? (2 * Math.PI * Math.sqrt((6371 + iss.altKm) ** 3 / 398600.4418)) / 60
+    : null
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -78,6 +82,14 @@ const ISSPanel = () => {
             <Fact
               label="Position"
               value={iss ? `${iss.lat.toFixed(2)}, ${iss.lng.toFixed(2)}` : "—"}
+            />
+            <Fact
+              label="Orbital period"
+              value={periodMin ? `~${periodMin.toFixed(0)} min` : "—"}
+            />
+            <Fact
+              label="Orbits / day"
+              value={periodMin ? `~${(1440 / periodMin).toFixed(1)}` : "—"}
             />
           </section>
 

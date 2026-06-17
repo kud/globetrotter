@@ -83,7 +83,11 @@ export type MoonInfo = {
   phaseName: string
   ageDays: number // days since the last new moon
   daysToFull: number // days until the next full moon
+  angularArcmin: number // apparent angular diameter, arcminutes
 }
+
+const arcmin = (radiusKm: number, distKm: number) =>
+  (2 * Math.atan(radiusKm / distKm) * 180 * 60) / Math.PI
 
 export const moonInfo = (date: Date): MoonInfo => {
   const d = toDays(date)
@@ -120,6 +124,7 @@ export const moonInfo = (date: Date): MoonInfo => {
     phaseName: phaseName(phase),
     ageDays: phase * SYNODIC,
     daysToFull: (phase <= 0.5 ? 0.5 - phase : 1.5 - phase) * SYNODIC,
+    angularArcmin: arcmin(1737.4, m.dist),
   }
 }
 
@@ -131,7 +136,9 @@ export type SunInfo = {
   lat: number // subsolar latitude (°)
   lng: number // subsolar longitude (°)
   distanceKm: number
+  distanceAu: number // Earth–Sun distance in astronomical units
   seasonNorth: string // astronomical season, northern hemisphere
+  angularArcmin: number // apparent angular diameter, arcminutes
 }
 
 // The subsolar point: the geographic lat/lng where the Sun is at the zenith
@@ -149,11 +156,14 @@ export const sunInfo = (date: Date): SunInfo => {
   const C = rad * (1.9148 * Math.sin(g) + 0.02 * Math.sin(2 * g))
   const lambda =
     ((((g + C + rad * 102.9372 + Math.PI) / rad) % 360) + 360) % 360
+  const distanceKm = Math.round(au * 149597870.7)
   return {
     lat,
     lng,
-    distanceKm: Math.round(au * 149597870.7),
+    distanceKm,
+    distanceAu: au,
     seasonNorth: SEASONS_N[Math.floor(lambda / 90) % 4],
+    angularArcmin: arcmin(695700, distanceKm),
   }
 }
 
