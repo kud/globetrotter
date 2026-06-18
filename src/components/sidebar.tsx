@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
+import { AnimatePresence, motion } from "framer-motion"
 import { countries, countryById } from "@/lib/geo"
 import { getCountryInfo } from "@/lib/country-info"
 import { useT, statusKey } from "@/lib/i18n"
@@ -30,7 +31,41 @@ import {
 // (which include split territories), so the headline matches expectations.
 const WORLD_COUNTRIES = 195
 
-const Stat = ({ value, label }: { value: string; label: string }) => (
+// Counts up from 0 to `value` with an ease-out, re-running whenever the target
+// changes — the stat numbers "roll" into place on load and on every update.
+const CountUp = ({
+  value,
+  suffix = "",
+}: {
+  value: number
+  suffix?: string
+}) => {
+  const [n, setN] = useState(0)
+  useEffect(() => {
+    let raf = 0
+    let startTs = 0
+    // Hold briefly at 0 so the eye catches the start, then roll up.
+    const DELAY = 300
+    const DUR = 1400
+    const tick = (ts: number) => {
+      if (!startTs) startTs = ts
+      const p = Math.max(0, Math.min(1, (ts - startTs - DELAY) / DUR))
+      const eased = 1 - Math.pow(1 - p, 3)
+      setN(Math.round(value * eased))
+      if (ts - startTs < DELAY + DUR) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [value])
+  return (
+    <span className="tabular-nums">
+      {n}
+      {suffix}
+    </span>
+  )
+}
+
+const Stat = ({ value, label }: { value: React.ReactNode; label: string }) => (
   <div className="rounded-xl bg-[var(--panel-2)] px-2 py-3 text-center">
     <span className="block text-2xl font-bold leading-none">{value}</span>
     <span className="mt-1 block text-[0.7rem] uppercase tracking-wide text-[var(--ink-dim)]">
@@ -61,6 +96,91 @@ const StatusTag = ({ status }: { status: Status }) => {
       <StatusIcon status={status} width={11} height={11} />{" "}
       {t(statusKey(status))}
     </span>
+  )
+}
+
+type SortKey = "name" | "rating" | "recent"
+const SORT_KEYS: SortKey[] = ["name", "rating", "recent"]
+
+// Custom sort dropdown replacing the native <select> so it matches the app's
+// styling and animates open/close like the language menu.
+const SortSelect = ({
+  value,
+  onChange,
+}: {
+  value: SortKey
+  onChange: (v: SortKey) => void
+}) => {
+  const t = useT()
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false)
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [open])
+
+  return (
+    <div className="relative ml-auto">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-label={t("sort.aria")}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--panel-2)] px-2.5 py-1 text-[0.7rem] font-medium text-[var(--ink-dim)] hover:text-[var(--ink)]"
+      >
+        {t(`sort.${value}`)}
+        <span
+          className={`text-[8px] leading-none transition-transform duration-200 ${
+            open ? "rotate-180" : ""
+          }`}
+        >
+          ▼
+        </span>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <>
+            <div
+              className="fixed inset-0 z-30"
+              onClick={() => setOpen(false)}
+            />
+            <motion.ul
+              role="listbox"
+              initial={{ opacity: 0, y: -6, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.97 }}
+              transition={{ duration: 0.16, ease: "easeOut" }}
+              style={{ transformOrigin: "top right" }}
+              className="absolute right-0 z-40 mt-1.5 w-36 overflow-hidden rounded-xl border border-[var(--border-strong)] bg-[var(--panel)] py-1 shadow-2xl"
+            >
+              {SORT_KEYS.map((k) => (
+                <li key={k}>
+                  <button
+                    role="option"
+                    aria-selected={k === value}
+                    onClick={() => {
+                      onChange(k)
+                      setOpen(false)
+                    }}
+                    className={`flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-[0.72rem] transition-colors hover:bg-[var(--panel-hover)] ${
+                      k === value
+                        ? "font-semibold text-[var(--accent)]"
+                        : "text-[var(--ink)]"
+                    }`}
+                  >
+                    {t(`sort.${k}`)}
+                    {k === value && <span>✓</span>}
+                  </button>
+                </li>
+              ))}
+            </motion.ul>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
 
@@ -256,14 +376,17 @@ const Sidebar = () => {
 
       <div className="grid grid-cols-3 gap-2.5">
         <Stat
-          value={hydrated ? String(visited) : "—"}
+          value={hydrated ? <CountUp value={visited} /> : "—"}
           label={t("stat.visited")}
         />
         <Stat
-          value={hydrated ? String(wishlist) : "—"}
+          value={hydrated ? <CountUp value={wishlist} /> : "—"}
           label={t("stat.wishlist")}
         />
-        <Stat value={hydrated ? `${percent}%` : "—"} label={t("stat.world")} />
+        <Stat
+          value={hydrated ? <CountUp value={percent} suffix="%" /> : "—"}
+          label={t("stat.world")}
+        />
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -379,16 +502,7 @@ const Sidebar = () => {
                 </button>
               ))}
             </div>
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value as typeof sort)}
-              aria-label={t("sort.aria")}
-              className="ml-auto rounded-lg border border-[var(--border)] bg-[var(--panel-2)] px-2 py-1 text-[0.7rem] text-[var(--ink-dim)] outline-none"
-            >
-              <option value="name">{t("sort.name")}</option>
-              <option value="rating">{t("sort.rating")}</option>
-              <option value="recent">{t("sort.recent")}</option>
-            </select>
+            <SortSelect value={sort} onChange={setSort} />
           </div>
         )}
         {hydrated && marked.length === 0 && (

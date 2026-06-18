@@ -152,9 +152,20 @@ const ThemeToggle = () => {
       onClick={cycleTheme}
       aria-label={t("theme.toggle")}
       title={t(`theme.${theme}`)}
-      className="grid h-9 w-9 place-items-center rounded-full border border-[var(--border)] bg-[var(--panel)] text-[var(--ink-dim)] hover:text-[var(--ink)]"
+      className="grid h-9 w-9 place-items-center overflow-hidden rounded-full border border-[var(--border)] bg-[var(--panel)] text-[var(--ink-dim)] hover:text-[var(--ink)]"
     >
-      <Icon width={17} height={17} />
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span
+          key={theme}
+          initial={{ rotate: -90, scale: 0.4, opacity: 0 }}
+          animate={{ rotate: 0, scale: 1, opacity: 1 }}
+          exit={{ rotate: 90, scale: 0.4, opacity: 0 }}
+          transition={{ duration: 0.22, ease: "easeOut" }}
+          className="grid place-items-center"
+        >
+          <Icon width={17} height={17} />
+        </motion.span>
+      </AnimatePresence>
     </button>
   )
 }
