@@ -11,7 +11,7 @@ export const GET = async (req: Request) => {
   try {
     const res = await fetch(`${ENDPOINT}${hex.toLowerCase()}`, {
       headers: {
-        "User-Agent": "Globetrotter/1.0 (+https://globetrotter-map.vercel.app)",
+        "User-Agent": "Globetrotter/1.0 (+https://globetrotter.kud.io)",
       },
       next: { revalidate: ONE_DAY },
     })
