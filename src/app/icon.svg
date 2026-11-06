@@ -9,7 +9,7 @@
       <stop offset="1" stop-color="#16204a" />
     </radialGradient>
   </defs>
-  <rect width="64" height="64" rx="15" fill="url(#bg)" />
+  <rect width="64" height="64" fill="url(#bg)" />
   <circle cx="32" cy="32" r="23" fill="url(#globe)" stroke="#5aa9ff" stroke-width="1.4" />
   <g fill="none" stroke="#9cc2ff" stroke-width="1.3" opacity="0.55">
     <ellipse cx="32" cy="32" rx="23" ry="9.6" />
