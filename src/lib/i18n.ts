@@ -119,6 +119,14 @@ const en: Dict = {
   "notes.wishlist": "Trip plan",
   "notes.visited.ph": "Anything else worth remembering?",
   "notes.wishlist.ph": "What's the plan — when, with whom, must-sees?",
+  "quiz.play": "Play",
+  "quiz.stop": "Stop",
+  "quiz.prompt": "Which country is highlighted?",
+  "quiz.correct": "Correct!",
+  "quiz.wrong": "It was {name}",
+  "quiz.next": "Next",
+  "quiz.score": "Score {score}",
+  "quiz.streak": "Streak {n}",
 }
 
 const fr: Dict = {
@@ -227,6 +235,14 @@ const fr: Dict = {
   "notes.wishlist": "Plan de voyage",
   "notes.visited.ph": "Autre chose à retenir ?",
   "notes.wishlist.ph": "Quel est le plan — quand, avec qui, à ne pas manquer ?",
+  "quiz.play": "Jouer",
+  "quiz.stop": "Arrêter",
+  "quiz.prompt": "Quel pays est surligné ?",
+  "quiz.correct": "Bonne réponse !",
+  "quiz.wrong": "C'était {name}",
+  "quiz.next": "Suivant",
+  "quiz.score": "Score {score}",
+  "quiz.streak": "Série {n}",
 }
 
 const es: Dict = {
@@ -335,6 +351,14 @@ const es: Dict = {
   "notes.wishlist": "Plan de viaje",
   "notes.visited.ph": "¿Algo más que recordar?",
   "notes.wishlist.ph": "¿Cuál es el plan — cuándo, con quién, imprescindibles?",
+  "quiz.play": "Jugar",
+  "quiz.stop": "Detener",
+  "quiz.prompt": "¿Qué país está resaltado?",
+  "quiz.correct": "¡Correcto!",
+  "quiz.wrong": "Era {name}",
+  "quiz.next": "Siguiente",
+  "quiz.score": "Puntuación {score}",
+  "quiz.streak": "Racha {n}",
 }
 
 const de: Dict = {
@@ -443,6 +467,14 @@ const de: Dict = {
   "notes.wishlist": "Reiseplan",
   "notes.visited.ph": "Sonst noch etwas Erinnernswertes?",
   "notes.wishlist.ph": "Was ist der Plan — wann, mit wem, Höhepunkte?",
+  "quiz.play": "Spielen",
+  "quiz.stop": "Stopp",
+  "quiz.prompt": "Welches Land ist hervorgehoben?",
+  "quiz.correct": "Richtig!",
+  "quiz.wrong": "Es war {name}",
+  "quiz.next": "Weiter",
+  "quiz.score": "Punkte {score}",
+  "quiz.streak": "Serie {n}",
 }
 
 const dict: Record<Locale, Dict> = { en, fr, es, de }

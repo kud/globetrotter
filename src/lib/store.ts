@@ -2,6 +2,7 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { useSyncExternalStore } from "react"
 import type { LayerId, TransportPoint } from "@/lib/transport"
+import { buildOptions, pickTarget, quizPool } from "@/lib/quiz"
 
 export type Status = "visited" | "wishlist" | "blocked"
 export type View = "globe" | "map"
@@ -86,6 +87,12 @@ export type TravelState = TravelData & {
   ocean: string | null
   layers: Record<LayerId, boolean>
   place: TransportPoint | null
+  quiz: boolean
+  quizTargetId: string | null
+  quizOptions: string[]
+  quizChosen: string | null
+  quizScore: { correct: number; answered: number }
+  quizStreak: number
   setFlight: (flight: LiveFlight | null) => void
   openFlight: () => void
   closeFlight: () => void
@@ -100,6 +107,8 @@ export type TravelState = TravelData & {
   toggleLayer: (id: LayerId) => void
   openPlace: (place: TransportPoint) => void
   closePlace: () => void
+  nextQuiz: () => void
+  answerQuiz: (id: string) => void
   setStatus: (id: string, status: Status | null) => void
   cycle: (id: string) => void
   setNote: (id: string, note: string) => void
@@ -113,8 +122,20 @@ export type TravelState = TravelData & {
   focus: (id: string | null) => void
   select: (id: string | null) => void
   flyTo: (id: string) => void
+  startQuiz: () => void
+  stopQuiz: () => void
   reset: () => void
   replaceData: (data: TravelData) => void
+}
+
+const newRound = (previous: string | null) => {
+  const pool = quizPool()
+  const target = pickTarget(pool, previous)
+  return {
+    quizTargetId: target,
+    quizOptions: buildOptions(target, pool),
+    quizChosen: null,
+  }
 }
 
 export const useTravelStore = create<TravelState>()(
@@ -141,6 +162,12 @@ export const useTravelStore = create<TravelState>()(
       ocean: null,
       layers: { airports: false, stations: false, ports: false },
       place: null,
+      quiz: false,
+      quizTargetId: null,
+      quizOptions: [],
+      quizChosen: null,
+      quizScore: { correct: 0, answered: 0 },
+      quizStreak: 0,
 
       setStatus: (id, status) =>
         set((state) => {
@@ -177,7 +204,13 @@ export const useTravelStore = create<TravelState>()(
           return { reviews: next }
         }),
 
-      setView: (view) => set({ view }),
+      // The quiz is flat-map-only, so going to the globe always ends it.
+      setView: (view) =>
+        set(
+          view === "globe"
+            ? { view, quiz: false, quizTargetId: null, selectedId: null }
+            : { view },
+        ),
       setTheme: (theme) => set({ theme }),
       cycleTheme: () => set((state) => ({ theme: THEME_CYCLE[state.theme] })),
       setLocale: (locale) => set({ locale, localePinned: true }),
@@ -257,6 +290,42 @@ export const useTravelStore = create<TravelState>()(
           selectedId: null,
         }),
       closePlace: () => set({ place: null }),
+      startQuiz: () =>
+        set({
+          quiz: true,
+          view: "map",
+          selectedId: null,
+          focusId: null,
+          focusForce: false,
+          flightOpen: false,
+          issOpen: false,
+          moonOpen: false,
+          sunOpen: false,
+          ocean: null,
+          place: null,
+          quizScore: { correct: 0, answered: 0 },
+          quizStreak: 0,
+          ...newRound(null),
+        }),
+      stopQuiz: () =>
+        set({ quiz: false, quizTargetId: null, selectedId: null }),
+      nextQuiz: () => set((state) => newRound(state.quizTargetId)),
+      // Answering reveals the country by flying the map to it.
+      answerQuiz: (id) =>
+        set((state) => {
+          if (!state.quizTargetId || state.quizChosen) return {}
+          const ok = id === state.quizTargetId
+          return {
+            quizChosen: id,
+            quizScore: {
+              correct: state.quizScore.correct + (ok ? 1 : 0),
+              answered: state.quizScore.answered + 1,
+            },
+            quizStreak: ok ? state.quizStreak + 1 : 0,
+            focusId: state.quizTargetId,
+            focusForce: true,
+          }
+        }),
       focus: (focusId) => set({ focusId }),
       select: (selectedId) =>
         set({

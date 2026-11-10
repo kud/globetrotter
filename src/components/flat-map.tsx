@@ -38,6 +38,15 @@ import { HoverTip } from "@/components/hover-tip"
 type Props = { size: Size }
 type Transform = { k: number; x: number; y: number }
 
+// Quiz mode hides everything that could give the answer away (user statuses)
+// or open other UI (clicks, hover). A frozen empty object keeps the
+// CountryPaths memo prop stable across re-renders.
+const EMPTY: Record<string, Status> = Object.freeze({}) as Record<
+  string,
+  Status
+>
+const noop = () => {}
+
 // Memoised so zoom/pan (which only changes the parent <g> transform) doesn't
 // reconcile ~250 country paths every frame — the main flat-map FPS win.
 const CountryPaths = memo(function CountryPaths({
@@ -124,6 +133,8 @@ const FlatMap = ({ size }: Props) => {
   const selectedId = useTravelStore((s) => s.selectedId)
   const focusId = useTravelStore((s) => s.focusId)
   const focusForce = useTravelStore((s) => s.focusForce)
+  const quiz = useTravelStore((s) => s.quiz)
+  const quizTargetId = useTravelStore((s) => s.quizTargetId)
   const selectCountry = useTravelStore((s) => s.select)
   const openOcean = useTravelStore((s) => s.openOcean)
   const openPlace = useTravelStore((s) => s.openPlace)
@@ -476,11 +487,11 @@ const FlatMap = ({ size }: Props) => {
               </g>
               <CountryPaths
                 paths={paths}
-                statuses={statuses}
-                selectedId={selectedId}
+                statuses={quiz ? EMPTY : statuses}
+                selectedId={quiz ? quizTargetId : selectedId}
                 palette={palette}
-                onSelect={onSelect}
-                onEnter={onEnter}
+                onSelect={quiz ? noop : onSelect}
+                onEnter={quiz ? noop : onEnter}
                 onMove={onMove}
                 onLeave={onLeave}
               />
