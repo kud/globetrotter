@@ -55,8 +55,18 @@ const en: Dict = {
   "import.confirm":
     "Replace your current map with this save file ({count} countries)?",
   "import.error": "Could not read that file.",
-  footer:
-    "Built with Next.js, three.js & D3 · facts © mledoze · advisories © US & Canada · flights © adsb.lol · photos © Planespotters · your data never leaves your device",
+  "footer.credits":
+    "facts © mledoze · advisories © US & Canada · flights © adsb.lol · photos © Planespotters · your data never leaves your device",
+  "support.link": "Get support",
+  "support.title": "Get support",
+  "support.intro": "Write it here and your mail app opens with it, ready to send. Nothing leaves this page.",
+  "support.name": "Your name",
+  "support.optional": "(optional)",
+  "support.message": "What’s up?",
+  "support.cancel": "Not now",
+  "support.send": "Open in my mail app",
+  "support.subject": "Globetrotter support",
+  "support.subjectFrom": "Globetrotter support, from {name}",
   "view.globe": "Globe",
   "view.map": "Flat map",
   autospin: "Auto-spin",
@@ -162,8 +172,18 @@ const fr: Dict = {
   "import.confirm":
     "Remplacer votre carte actuelle par ce fichier ({count} pays) ?",
   "import.error": "Impossible de lire ce fichier.",
-  footer:
-    "Conçu avec Next.js, three.js & D3 · données © mledoze · conseils © US & Canada · vols © adsb.lol · photos © Planespotters · vos données ne quittent jamais votre appareil",
+  "footer.credits":
+    "données © mledoze · conseils © US & Canada · vols © adsb.lol · photos © Planespotters · vos données ne quittent jamais votre appareil",
+  "support.link": "Obtenir de l’aide",
+  "support.title": "Obtenir de l’aide",
+  "support.intro": "Écrivez ici\u00a0: votre messagerie s’ouvre avec votre message, prêt à partir. Rien ne quitte cette page.",
+  "support.name": "Votre nom",
+  "support.optional": "(facultatif)",
+  "support.message": "Que se passe-t-il\u00a0?",
+  "support.cancel": "Pas maintenant",
+  "support.send": "Ouvrir dans ma messagerie",
+  "support.subject": "Aide Globetrotter",
+  "support.subjectFrom": "Aide Globetrotter, de la part de {name}",
   "view.globe": "Globe",
   "view.map": "Carte plate",
   autospin: "Rotation auto",
@@ -270,8 +290,18 @@ const es: Dict = {
   "import.confirm":
     "¿Reemplazar tu mapa actual con este archivo ({count} países)?",
   "import.error": "No se pudo leer el archivo.",
-  footer:
-    "Hecho con Next.js, three.js & D3 · datos © mledoze · avisos © US y Canadá · vuelos © adsb.lol · fotos © Planespotters · tus datos nunca salen de tu dispositivo",
+  "footer.credits":
+    "datos © mledoze · avisos © US y Canadá · vuelos © adsb.lol · fotos © Planespotters · tus datos nunca salen de tu dispositivo",
+  "support.link": "Obtener ayuda",
+  "support.title": "Obtener ayuda",
+  "support.intro": "Escríbelo aquí y tu app de correo se abrirá con el mensaje, listo para enviar. Nada sale de esta página.",
+  "support.name": "Tu nombre",
+  "support.optional": "(opcional)",
+  "support.message": "¿Qué pasa?",
+  "support.cancel": "Ahora no",
+  "support.send": "Abrir en mi correo",
+  "support.subject": "Ayuda con Globetrotter",
+  "support.subjectFrom": "Ayuda con Globetrotter, de {name}",
   "view.globe": "Globo",
   "view.map": "Mapa plano",
   autospin: "Giro automático",
@@ -378,8 +408,18 @@ const de: Dict = {
   "import.confirm":
     "Deine aktuelle Karte durch diese Datei ersetzen ({count} Länder)?",
   "import.error": "Datei konnte nicht gelesen werden.",
-  footer:
-    "Erstellt mit Next.js, three.js & D3 · Daten © mledoze · Hinweise © US & Kanada · Flüge © adsb.lol · Fotos © Planespotters · deine Daten verlassen nie dein Gerät",
+  "footer.credits":
+    "Daten © mledoze · Hinweise © US & Kanada · Flüge © adsb.lol · Fotos © Planespotters · deine Daten verlassen nie dein Gerät",
+  "support.link": "Hilfe bekommen",
+  "support.title": "Hilfe bekommen",
+  "support.intro": "Schreib es hier auf, dann öffnet sich deine Mail-App mit der Nachricht, bereit zum Senden. Nichts verlässt diese Seite.",
+  "support.name": "Dein Name",
+  "support.optional": "(optional)",
+  "support.message": "Worum geht’s?",
+  "support.cancel": "Nicht jetzt",
+  "support.send": "In meiner Mail-App öffnen",
+  "support.subject": "Globetrotter-Hilfe",
+  "support.subjectFrom": "Globetrotter-Hilfe, von {name}",
   "view.globe": "Globus",
   "view.map": "Flache Karte",
   autospin: "Auto-Drehung",

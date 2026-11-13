@@ -15,6 +15,7 @@ import {
 import { STATUS, badgeStyle } from "@/lib/colors"
 import { buildSaveFile, downloadSaveFile, parseSaveFile } from "@/lib/save-file"
 import About from "@/components/about"
+import { SiteFooter } from "@/components/site-footer"
 import {
   DownloadIcon,
   UploadIcon,
@@ -673,9 +674,7 @@ const Sidebar = () => {
         </button>
       </section>
 
-      <footer className="text-[0.7rem] leading-relaxed text-[var(--ink-faint)]">
-        {t("footer")}
-      </footer>
+      <SiteFooter />
     </aside>
   )
 }
