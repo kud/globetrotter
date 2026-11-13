@@ -1,0 +1,83 @@
+---
+title: "📝 Your atlas"
+description: "Marking countries, keeping a travel journal, using the sidebar, and backing up or moving your data."
+---
+
+## 🏳️ Statuses
+
+Every country has one of four states:
+
+| Status       | Meaning                                    | On the map      |
+| ------------ | ------------------------------------------ | --------------- |
+| **Not yet**  | No status (the default).                   | Plain           |
+| **Wishlist** | Somewhere you want to go.                  | Dashed border   |
+| **Visited**  | Somewhere you've been.                     | Status colour   |
+| **Blocked**  | Somewhere you've decided not to go.        | Dotted border   |
+
+Set a status from the buttons in a country panel, or click the status tag on a row in the sidebar list to cycle it: Not yet → Wishlist → Visited → Blocked → Not yet.
+
+## 📓 The travel journal
+
+A **Visited** country gets a **Your visit** section in its panel:
+
+- **When did you visit?** — a month picker; add as many trips as you like, each stored as a year and month, and remove one by clicking it.
+- **Rating** — one to five stars.
+- **Would you go back?** — Yes, Maybe or No.
+- **What you loved** and **What you didn't**.
+- **Best time to visit** — free text, such as "late spring, avoid August".
+
+Every country also has a notes field. On a wishlisted country it's labelled **Trip plan**; otherwise it's **Your notes**. Empty fields are dropped rather than stored.
+
+## 📋 The sidebar
+
+The sidebar sums up your atlas and lists what you've marked:
+
+- **Counters** for visited and wishlisted countries, and a progress bar against the world's 195 countries.
+- **Average rating** across the countries you've rated.
+- **Find a country**: search by name, then pick a result to fly to it.
+- **Your countries**: filter by all, visited, wishlist or blocked, and sort A–Z, by **Top rated** or by **Recent trip** (the latest month you logged).
+
+## 💾 Your data stays here
+
+Everything you enter (statuses, notes and journal entries), along with your preferences, is saved in your browser's `localStorage` under the key `globetrotter:v1`. Nothing is sent to a server. Clearing site data, or switching browser or device, starts you from an empty map, so keep a backup.
+
+The **Save file** section in the sidebar handles that:
+
+| Action               | What it does                                                                    |
+| -------------------- | ------------------------------------------------------------------------------- |
+| **Export**           | Downloads `globetrotter-YYYY-MM-DD.json`.                                       |
+| **Import**           | Loads a save file, after asking to replace your current map.                    |
+| **Copy**             | Copies the same JSON to the clipboard.                                          |
+| **Paste**            | Opens a field to paste JSON into, then **Load data**.                           |
+| **Reset everything** | Clears every country from your map, after a confirmation.                       |
+
+Importing replaces your map rather than merging with it. Preferences such as theme and language are not part of the save file.
+
+## 🧾 Save file format
+
+A save file is plain JSON. Only countries with a status, a note or a journal entry are included:
+
+```json
+{
+  "app": "globetrotter",
+  "version": 3,
+  "exportedAt": "2026-05-01T09:30:00.000Z",
+  "countries": [
+    {
+      "id": "392",
+      "name": "Japan",
+      "status": "visited",
+      "note": "Go back for the autumn leaves.",
+      "review": {
+        "rating": 5,
+        "wouldReturn": "yes",
+        "liked": "Food, trains",
+        "bestTime": "October",
+        "visits": ["2024-10"]
+      }
+    }
+  ]
+}
+```
+
+On import, a file whose `app` isn't `globetrotter` is rejected. Entries without a string `id` are skipped, and an unknown `status` is ignored.

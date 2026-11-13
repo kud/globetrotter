@@ -1,0 +1,69 @@
+---
+title: "🗺️ Exploring the map"
+description: "The flat map and globe, the toolbar controls, what a country panel shows, and every clickable layer and marker."
+---
+
+## 🌍 Two views
+
+The toggle at the top left switches between two views of the same world:
+
+| View         | What it is                                                                                     |
+| ------------ | ---------------------------------------------------------------------------------------------- |
+| **Flat map** | A pannable, zoomable Mercator map drawn in SVG with D3. This is where the app always opens.    |
+| **Globe**    | An interactive WebGL globe (react-globe.gl on three.js), floating in dark space in both themes. |
+
+The globe is only mounted while it's the active view, so its render loop never runs in the background, and if you never open it three.js is never loaded at all.
+
+## 🎛️ The toolbar
+
+| Control             | Where                    | What it does                                                                     |
+| ------------------- | ------------------------ | -------------------------------------------------------------------------------- |
+| View toggle         | Top left                 | Flat map or Globe.                                                               |
+| Auto-spin           | Top right, globe only    | Slowly rotates the globe.                                                        |
+| Language            | Top right                | English, Français, Español or Deutsch.                                           |
+| Theme               | Top right                | Cycles System, Light and Dark.                                                   |
+| Compass             | Right edge, flat map     | Flips the map between north-up and south-up.                                     |
+| Zoom buttons        | Flat map                 | Zoom in, zoom out and reset; hidden while zoom is locked.                        |
+| Zoom lock           | Flat map                 | Freezes zoom on both views, handy on a trackpad.                                 |
+| Layers              | Bottom left              | Toggles the airports, train stations and ports overlays.                         |
+
+The language is picked from your browser on first visit. Once you choose one yourself, that choice sticks and automatic detection stops. Theme, language, auto-spin, zoom lock, south-up and the layer toggles are all remembered between visits; the view is not, so you always come back to the flat map.
+
+## 🏳️ Country panels
+
+Click any country, on either view or in the sidebar, to open its panel. It holds:
+
+- **Status buttons**: Not yet, Wishlist, Visited and Blocked.
+- **Travel safety**: a four-step risk level blended from the US and Canadian advisories. Territories show their parent country's advisory, and the panel says so.
+- **Facts**: capital, region, population, languages, currency, area, calling code and internet TLD, where known.
+- **About**: the Wikipedia summary, from French Wikipedia when the interface is in French and English Wikipedia otherwise.
+- **Conditions**: live temperature, humidity, wind and sky at the capital (or the country's centre), plus season, an approximate climate band and biome, the monsoon when it applies, elevation and timezone.
+- **Your visit** and **notes**: see [Your atlas](/projects/globetrotter/docs/your-atlas).
+
+The capital of the selected country is marked with a star inside a ring on both views. Press `Escape` to close the panel.
+
+## 🚉 Transport layers
+
+The **Layers** control adds three overlays, all off by default:
+
+| Layer          | Source                                                       |
+| -------------- | ------------------------------------------------------------ |
+| Airports       | About 1,200 major airports from the public-domain OurAirports dataset. |
+| Train stations | A curated list of the world's principal rail hubs.          |
+| Ports          | A curated list of major seaports.                            |
+
+On the flat map, dense areas are clustered; clicking a cluster lists the places inside it. Clicking a place opens its panel with a Wikipedia summary and the same live conditions block as a country.
+
+## ✨ Live markers
+
+A handful of markers move on their own. Each one opens its own panel when clicked:
+
+| Marker            | What it shows                                                                                         |
+| ----------------- | ----------------------------------------------------------------------------------------------------- |
+| ✈️ Live flight    | A real aircraft in the air, changing every minute, with type, operator, registration, a photo and its route. |
+| 🛰️ ISS            | The International Space Station's current position.                                                   |
+| 🌙 Moon           | The point on Earth where the Moon is directly overhead, with its phase.                               |
+| ☀️ Sun            | The point where the Sun is directly overhead right now.                                               |
+| 🌊 Ocean labels   | Click an ocean's name for its Wikipedia summary.                                                      |
+
+When a flight's route is known, its line points to the destination and both airports link to Wikipedia; otherwise the line follows the aircraft's heading. Opening any of these panels closes whichever panel was open before. Where every figure comes from is on [Live data](/projects/globetrotter/docs/live-data).

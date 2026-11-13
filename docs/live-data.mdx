@@ -1,0 +1,42 @@
+---
+title: "📡 Live data"
+description: "Where each live figure comes from, how often it refreshes, and the small API routes that sit in front of the external services."
+---
+
+Your own data never leaves the browser. The live figures do come from outside, though: some straight from the browser, some through Globetrotter's own API routes. Those routes exist to send a proper `User-Agent`, to merge feeds, or to cache an upstream service so it isn't asked the same thing twice.
+
+## 🌐 Sources
+
+| What                       | Source                                              | Fetched by                 | Refresh                         |
+| -------------------------- | --------------------------------------------------- | -------------------------- | ------------------------------- |
+| Travel advisories          | US State Department RSS and Canada's advisory JSON  | `/api/advisories`          | Cached six hours upstream       |
+| Live aircraft              | adsb.lol                                            | `/api/flight`              | Polled every minute             |
+| Aircraft details and route | hexdb.io                                            | `/api/plane-info`          | Aircraft a day, routes an hour  |
+| Aircraft photo             | Planespotters                                       | `/api/plane-photo`         | A day                           |
+| ISS position               | wheretheiss.at                                      | Browser                    | Every five seconds              |
+| Weather                    | Open-Meteo                                          | Browser                    | When a panel opens              |
+| Summaries                  | Wikipedia REST API                                  | Browser                    | When a panel opens              |
+| Sun and Moon               | Computed locally, no network                        | Browser                    | Every minute                    |
+
+Country facts, capitals and a snapshot of the US advisories ship with the app as JSON in `src/data/`, so the panels still have something to show when a live feed is down.
+
+## 🛡️ How the risk level is worked out
+
+`/api/advisories` returns both feeds side by side. For each country the app then:
+
+1. Swaps a territory for its parent country, since the feeds are per country.
+2. Takes the US level from the live feed, or from the bundled snapshot if the live one has nothing.
+3. Takes the Canadian level, if there is one.
+4. Averages whatever it found and rounds it to a level from 1 to 4.
+
+The panel tells you whether the US figure is live or from the snapshot, and the date it refers to. If neither source has a level, it says so and points you to the official sources.
+
+## ✈️ How the flight is picked
+
+Each minute the browser calls `/api/flight` with a fresh random `seed`. The route uses it to pick one of eight busy regions (London, New York, Los Angeles, Tokyo, Dubai, Paris, Singapore, Sydney), asks adsb.lol for aircraft within 50 nautical miles, and returns one that is airborne. Each region's response is cached for ten minutes, so the aircraft keeps changing while the volunteer-run feed is asked far less often.
+
+The panel then fills itself in from `/api/plane-info?hex=…&callsign=…` and `/api/plane-photo?hex=…`. Both expect a six-character ICAO hex code, and both return empty fields rather than an error when a lookup fails, so the panel simply shows what it has.
+
+## 📲 Offline and install
+
+Globetrotter is a progressive web app with a web app manifest and a service worker, so you can install it to your home screen or dock. The service worker caches the app shell. Your atlas, being in `localStorage`, is always available; the live figures need a connection.
