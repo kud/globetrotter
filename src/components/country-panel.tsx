@@ -288,6 +288,7 @@ const SourceLinks = ({ info }: { info: CountryInfo }) => (
 
 const CountryPanel = () => {
   const t = useT()
+  const quiz = useTravelStore((s) => s.quiz)
   const selectedId = useTravelStore((s) => s.selectedId)
   const statuses = useTravelStore((s) => s.statuses)
   const notes = useTravelStore((s) => s.notes)
@@ -405,7 +406,7 @@ const CountryPanel = () => {
 
   return (
     <AnimatePresence>
-      {selectedId && (
+      {selectedId && !quiz && (
         <motion.aside
           key={selectedId}
           initial={{ x: "100%", opacity: 0.4 }}

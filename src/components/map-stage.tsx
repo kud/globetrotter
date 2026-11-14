@@ -18,6 +18,7 @@ import SunPanel from "@/components/sun-panel"
 import OceanPanel from "@/components/ocean-panel"
 import PlacePanel from "@/components/place-panel"
 import LayersControl from "@/components/layers-control"
+import QuizCard from "@/components/quiz-card"
 import {
   GlobeIcon,
   MapIcon,
@@ -71,6 +72,25 @@ const SpinToggle = () => {
       />
       {t("autospin")}
     </label>
+  )
+}
+
+const PlayToggle = () => {
+  const t = useT()
+  const quiz = useTravelStore((s) => s.quiz)
+  const startQuiz = useTravelStore((s) => s.startQuiz)
+  const stopQuiz = useTravelStore((s) => s.stopQuiz)
+  return (
+    <button
+      onClick={() => (quiz ? stopQuiz() : startQuiz())}
+      className={`flex h-9 items-center rounded-full border bg-[var(--panel)] px-3.5 text-sm font-medium transition-colors ${
+        quiz
+          ? "border-[var(--accent)] text-[var(--accent)]"
+          : "border-[var(--border)] text-[var(--ink-dim)] hover:text-[var(--ink)]"
+      }`}
+    >
+      {quiz ? t("quiz.stop") : t("quiz.play")}
+    </button>
   )
 }
 
@@ -239,6 +259,7 @@ const MapStage = () => {
         <ViewToggle />
         <div className="flex items-center gap-3">
           {view === "globe" && <SpinToggle />}
+          <PlayToggle />
           <LanguageSelect />
           <ThemeToggle />
         </div>
@@ -285,6 +306,7 @@ const MapStage = () => {
       <SunPanel />
       <OceanPanel />
       <PlacePanel />
+      <QuizCard />
     </main>
   )
 }
