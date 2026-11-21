@@ -112,7 +112,8 @@ const CountryPaths = memo(function CountryPaths({
 if (typeof window !== "undefined") loadCountryFeatures().catch(() => {})
 
 // Until the file lands the map draws its oceans, markers and labels without
-// land; on a failed fetch it tries again on the next mount.
+// land (no outline placeholder), then the land fades in; on a failed fetch it
+// tries again on the next mount.
 const useCountryFeatures = (): CountryFeature[] | null => {
   const [features, setFeatures] = useState<CountryFeature[] | null>(null)
   useEffect(() => {
@@ -500,16 +501,22 @@ const FlatMap = ({ size }: Props) => {
                   </text>
                 ))}
               </g>
-              <CountryPaths
-                paths={paths}
-                statuses={statuses}
-                selectedId={selectedId}
-                palette={palette}
-                onSelect={onSelect}
-                onEnter={onEnter}
-                onMove={onMove}
-                onLeave={onLeave}
-              />
+              {/* Mounted only once the 50m land has arrived, so its fade-in
+                  plays exactly once over the ocean already drawn. */}
+              {features && (
+                <g className="land-in">
+                  <CountryPaths
+                    paths={paths}
+                    statuses={statuses}
+                    selectedId={selectedId}
+                    palette={palette}
+                    onSelect={onSelect}
+                    onEnter={onEnter}
+                    onMove={onMove}
+                    onLeave={onLeave}
+                  />
+                </g>
+              )}
               {clusters.map((cl) => {
                 if (cl.members.length === 1) {
                   const { p, color, x, y } = cl.members[0]
