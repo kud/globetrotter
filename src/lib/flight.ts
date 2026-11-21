@@ -15,6 +15,7 @@ export const PLANE_PATH =
 export const useFlightPoller = () => {
   useEffect(() => {
     let active = true
+    let enriched = null as { id: string; info: Partial<LiveFlight> } | null
     const load = async () => {
       try {
         const seed = Math.floor(Math.random() * 1e9)
@@ -25,11 +26,20 @@ export const useFlightPoller = () => {
           useTravelStore.getState().setFlight(null)
           return
         }
+        // The seed can land on the aircraft already shown; its type, operator
+        // and route have not changed, so reuse them instead of another call.
+        const known =
+          enriched && enriched.id === flight.id ? enriched.info : null
+        if (known) {
+          useTravelStore.getState().setFlight({ ...flight, ...known })
+          return
+        }
         useTravelStore.getState().setFlight(flight)
         // Enrich (type, operator, route + airport coords) without blocking the pin.
         const info = await fetch(
           `/api/plane-info?hex=${flight.id}&callsign=${flight.callsign}`,
         ).then((r) => r.json())
+        enriched = { id: flight.id, info }
         if (active && useTravelStore.getState().flight?.id === flight.id) {
           useTravelStore.getState().setFlight({ ...flight, ...info })
         }
