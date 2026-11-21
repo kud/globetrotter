@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { everyWhileVisible } from "@/lib/visible-interval"
 
 export type ISS = { lat: number; lng: number; altKm: number; speedKmh: number }
 
@@ -7,7 +8,8 @@ export type ISS = { lat: number; lng: number; altKm: number; speedKmh: number }
 // reshape nothing — it would only add a Vercel Data Cache write per poll. Its
 // budget is 350 requests per 5 minutes per client IP, which is why every
 // consumer shares ONE interval: three components call this hook, and three
-// independent 5s timers would spend half that budget from a single tab.
+// independent 5s timers would spend half that budget from a single tab. The
+// interval also pauses while the tab is hidden; nobody is watching it move.
 const ENDPOINT = "https://api.wheretheiss.at/v1/satellites/25544"
 const POLL_MS = 5000
 
@@ -19,7 +21,7 @@ type Sat = {
 }
 
 let current: ISS | null = null
-let timer: ReturnType<typeof setInterval> | null = null
+let stopPolling: (() => void) | null = null
 const listeners = new Set<(value: ISS | null) => void>()
 
 const load = async () => {
@@ -45,15 +47,12 @@ export const useISS = (): ISS | null => {
   const [iss, setIss] = useState<ISS | null>(current)
   useEffect(() => {
     listeners.add(setIss)
-    if (!timer) {
-      load()
-      timer = setInterval(load, POLL_MS)
-    }
+    if (!stopPolling) stopPolling = everyWhileVisible(load, POLL_MS)
     return () => {
       listeners.delete(setIss)
-      if (listeners.size === 0 && timer) {
-        clearInterval(timer)
-        timer = null
+      if (listeners.size === 0 && stopPolling) {
+        stopPolling()
+        stopPolling = null
       }
     }
   }, [])

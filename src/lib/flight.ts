@@ -1,5 +1,6 @@
 import { useEffect } from "react"
 import { useTravelStore, type LiveFlight } from "@/lib/store"
+import { everyWhileVisible } from "@/lib/visible-interval"
 
 export type { LiveFlight }
 
@@ -10,9 +11,11 @@ export const PLANE_PATH =
 
 // One real aircraft from adsb.lol (via our proxy). Rotates to a fresh random
 // flight each minute; lives in the shared store so map + panel stay in sync.
+// Paused while the tab is hidden, refreshed once when it comes back.
 export const useFlightPoller = () => {
   useEffect(() => {
     let active = true
+    let enriched = null as { id: string; info: Partial<LiveFlight> } | null
     const load = async () => {
       try {
         const seed = Math.floor(Math.random() * 1e9)
@@ -23,11 +26,20 @@ export const useFlightPoller = () => {
           useTravelStore.getState().setFlight(null)
           return
         }
+        // The seed can land on the aircraft already shown; its type, operator
+        // and route have not changed, so reuse them instead of another call.
+        const known =
+          enriched && enriched.id === flight.id ? enriched.info : null
+        if (known) {
+          useTravelStore.getState().setFlight({ ...flight, ...known })
+          return
+        }
         useTravelStore.getState().setFlight(flight)
         // Enrich (type, operator, route + airport coords) without blocking the pin.
         const info = await fetch(
           `/api/plane-info?hex=${flight.id}&callsign=${flight.callsign}`,
         ).then((r) => r.json())
+        enriched = { id: flight.id, info }
         if (active && useTravelStore.getState().flight?.id === flight.id) {
           useTravelStore.getState().setFlight({ ...flight, ...info })
         }
@@ -35,11 +47,10 @@ export const useFlightPoller = () => {
         // Keep the last known flight on a transient failure.
       }
     }
-    load()
-    const id = setInterval(load, 60000)
+    const stop = everyWhileVisible(load, 60000)
     return () => {
       active = false
-      clearInterval(id)
+      stop()
     }
   }, [])
 }
