@@ -28,12 +28,23 @@ const loadCanada = async () => {
   }
 }
 
+/**
+ * The response is the same for every visitor, so it is cached at Vercel's edge
+ * for as long as the upstream fetches are: without this header every page load
+ * ran a function just to replay the Data Cache. Stale-while-revalidate keeps
+ * the refresh off the visitor's path. A response with both feeds empty is a
+ * failure, not news, and is left uncached so the next request retries.
+ */
+const EDGE_CACHE = `public, s-maxage=${SIX_HOURS}, stale-while-revalidate=${SIX_HOURS * 4}`
+
 // Live advisory levels from each government that publishes a machine-readable
 // numeric feed (US State Dept RSS + Canada bulk JSON). Cached 6h upstream.
 export const GET = async () => {
   const [state, canada] = await Promise.all([loadUs(), loadCanada()])
-  return Response.json({
-    updated: new Date().toISOString(),
-    sources: { state, canada },
-  })
+  const empty =
+    Object.keys(state).length === 0 && Object.keys(canada).length === 0
+  return Response.json(
+    { updated: new Date().toISOString(), sources: { state, canada } },
+    { headers: { "Cache-Control": empty ? "no-store" : EDGE_CACHE } },
+  )
 }
