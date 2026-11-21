@@ -42,14 +42,26 @@ const lookupPhoto = (hex: string): Promise<Photo> =>
     }
   })
 
+/**
+ * The answer depends only on the hex, so Vercel's edge keeps it for a day like
+ * the memo does, and every visitor who opens the same aircraft after the first
+ * is served without a function. "No photo exists" is an answer and is cached;
+ * a failed lookup is not, for the same 429 reason as above.
+ */
+const EDGE_CACHE = `public, s-maxage=${DAY}, stale-while-revalidate=${DAY}`
+const NO_STORE = { headers: { "Cache-Control": "no-store" } }
+
 export const GET = async (req: Request) => {
   const hex = new URL(req.url).searchParams.get("hex")
   if (!hex || !/^[0-9a-f]{6}$/i.test(hex)) {
-    return Response.json({ photo: null })
+    return Response.json({ photo: null }, NO_STORE)
   }
   try {
-    return Response.json({ photo: await lookupPhoto(hex.toLowerCase()) })
+    return Response.json(
+      { photo: await lookupPhoto(hex.toLowerCase()) },
+      { headers: { "Cache-Control": EDGE_CACHE } },
+    )
   } catch {
-    return Response.json({ photo: null })
+    return Response.json({ photo: null }, NO_STORE)
   }
 }
