@@ -1,5 +1,6 @@
 import { useEffect } from "react"
 import { useTravelStore, type LiveFlight } from "@/lib/store"
+import { everyWhileVisible } from "@/lib/visible-interval"
 
 export type { LiveFlight }
 
@@ -10,6 +11,7 @@ export const PLANE_PATH =
 
 // One real aircraft from adsb.lol (via our proxy). Rotates to a fresh random
 // flight each minute; lives in the shared store so map + panel stay in sync.
+// Paused while the tab is hidden, refreshed once when it comes back.
 export const useFlightPoller = () => {
   useEffect(() => {
     let active = true
@@ -35,11 +37,10 @@ export const useFlightPoller = () => {
         // Keep the last known flight on a transient failure.
       }
     }
-    load()
-    const id = setInterval(load, 60000)
+    const stop = everyWhileVisible(load, 60000)
     return () => {
       active = false
-      clearInterval(id)
+      stop()
     }
   }, [])
 }
