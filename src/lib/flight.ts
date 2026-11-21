@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 import { useTravelStore, type LiveFlight } from "@/lib/store"
 import { everyWhileVisible } from "@/lib/visible-interval"
+import { FLIGHT_SEEDS } from "@/lib/flight-seeds"
 
 export type { LiveFlight }
 
@@ -18,7 +19,8 @@ export const useFlightPoller = () => {
     let enriched = null as { id: string; info: Partial<LiveFlight> } | null
     const load = async () => {
       try {
-        const seed = Math.floor(Math.random() * 1e9)
+        // One of a fixed few, so the edge can answer most polls without a function.
+        const seed = Math.floor(Math.random() * FLIGHT_SEEDS)
         const res = await fetch(`/api/flight?seed=${seed}`)
         const { flight } = await res.json()
         if (!active) return
