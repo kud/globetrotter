@@ -1,14 +1,15 @@
 import { feature } from "topojson-client"
 import { geoCentroid } from "d3-geo"
 import type { Feature, Geometry, Position } from "geojson"
-import topology50 from "world-atlas/countries-50m.json"
+import type { Topology } from "topojson-specification"
 import topology110 from "world-atlas/countries-110m.json"
 import subunitsRaw from "@/data/subunits.json"
+import countryIndex from "@/data/countries.json"
 
 export type CountryProps = { name: string }
 export type CountryFeature = Feature<Geometry, CountryProps> & { id: string }
 
-type WorldTopology = typeof topology50
+type WorldTopology = Topology
 
 type TerritorySplit = {
   id: string
@@ -214,7 +215,7 @@ const injectSubunits = (features: CountryFeature[]): CountryFeature[] => [
   ),
 ]
 
-const buildFeatures = (topology: WorldTopology): CountryFeature[] => {
+export const buildFeatures = (topology: WorldTopology): CountryFeature[] => {
   const collection = feature(
     topology,
     topology.objects.countries,
@@ -229,9 +230,34 @@ const buildFeatures = (topology: WorldTopology): CountryFeature[] => {
   return injectSubunits(mergeById(splitTerritories(normalized)))
 }
 
+/**
+ * Where the 50m topology is served from. It is world-atlas's own file, copied
+ * byte for byte into /public (a test holds the two equal), rather than
+ * imported: as an import it was 756 KB inside the first-load JS, parsed before
+ * anything rendered and downloaded again with every deploy's new chunk hashes.
+ * As a static file it arrives alongside the JS, stays cached across deploys,
+ * and the service worker keeps it for offline use.
+ */
+export const COUNTRIES_50M_URL = "/geo/countries-50m.json"
+
+let features50m: Promise<CountryFeature[]> | null = null
+
 // 50m detail for the flat map (crisp coastlines; SVG handles the vertex count
-// cheaply and it zooms to 9×).
-export const countryFeatures: CountryFeature[] = buildFeatures(topology50)
+// cheaply and it zooms to 9×). Fetched once and shared; a failed fetch is
+// forgotten so the next caller retries.
+export const loadCountryFeatures = (): Promise<CountryFeature[]> => {
+  features50m ??= fetch(COUNTRIES_50M_URL)
+    .then((res) => {
+      if (!res.ok) throw new Error(`countries-50m ${res.status}`)
+      return res.json() as Promise<WorldTopology>
+    })
+    .then(buildFeatures)
+    .catch((error) => {
+      features50m = null
+      throw error
+    })
+  return features50m
+}
 
 // 110m detail for the globe: ~7× fewer vertices. The globe re-renders the whole
 // scene every frame and ray-casts the meshes on every hover, so triangle count
@@ -243,12 +269,31 @@ export const globeCountryFeatures: CountryFeature[] = buildFeatures(
 
 export type Country = { id: string; name: string; centroid: [number, number] }
 
-export const countries: Country[] = countryFeatures
-  .map((f) => ({
-    id: f.id,
-    name: f.properties.name,
-    centroid: geoCentroid(f) as [number, number],
-  }))
+/**
+ * Every country's id, name and centroid, derived from the 50m features. Kept
+ * as a small committed index (`src/data/countries.json`, a few KB) so the
+ * sidebar, search and save files work without the 50m topology in the bundle;
+ * `geo.test.ts` rebuilds it from world-atlas and fails if the two drift.
+ */
+export const indexCountries = (features: CountryFeature[]): Country[] =>
+  features
+    .map((f) => {
+      const [lng, lat] = geoCentroid(f)
+      return {
+        id: f.id,
+        name: f.properties.name,
+        centroid: [round(lng), round(lat)] as [number, number],
+      }
+    })
+    .sort((a, b) => a.name.localeCompare(b.name))
+
+// Four decimals is ~11 m: far below anything the map can show.
+const round = (n: number) => Math.round(n * 1e4) / 1e4
+
+// Sorted here, not trusted from the file, so the order follows the browser's
+// collation exactly as it did when the list was built at runtime.
+export const countries: Country[] = (countryIndex as Country[])
+  .slice()
   .sort((a, b) => a.name.localeCompare(b.name))
 
 export const countryById = new Map<string, Country>(

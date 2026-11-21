@@ -1,4 +1,5 @@
 import { getCache } from "@vercel/functions"
+import { FLIGHT_SEEDS } from "@/lib/flight-seeds"
 
 /**
  * How long a region's payload is held. TEN minutes, and the number is a spend
@@ -56,6 +57,10 @@ type Aircraft = {
   gnd?: boolean
 }
 
+// An empty answer is a gap, not news: left off the edge so the next poll retries.
+const noFlight = () =>
+  Response.json({ flight: null }, { headers: { "Cache-Control": "no-store" } })
+
 // Deliberately NOT `next: { revalidate }`. The Data Cache bills every
 // revalidation as an ISR write; the Runtime Cache is a regional KV that isn't
 // billed that way. That move fixed which meter was charged and not the rate —
@@ -80,12 +85,27 @@ const fetchRegion = async (lat: number, lon: number) => {
   return data
 }
 
+/**
+ * How long Vercel's edge keeps each answer. With the FLIGHT_SEEDS distinct
+ * seeds the route answers to, it caps invocations at seeds per EDGE_TTL —
+ * ~64 a minute — however many tabs are polling, where a free random seed made
+ * every poll from every tab a function call.
+ *
+ * 64 is eight aircraft per region across the eight regions: a viewer still
+ * lands somewhere new each minute, and two viewers who draw the same seed in
+ * the same minute simply see the same plane. The edge copy is a minute old at
+ * most, well inside the ten-minute payload it was cut from anyway.
+ */
+const EDGE_TTL = 60
+const EDGE_CACHE = `public, s-maxage=${EDGE_TTL}, stale-while-revalidate=${EDGE_TTL}`
+
 // One live aircraft from adsb.lol (free, no key, deploy-friendly). The client
 // sends a fresh seed each minute to rotate region + aircraft.
 export const GET = async (req: Request) => {
   try {
     const seedParam = new URL(req.url).searchParams.get("seed")
-    const seed = seedParam ? Math.abs(Number(seedParam)) : 0
+    const seed = seedParam ? Math.abs(Math.trunc(Number(seedParam))) % FLIGHT_SEEDS : 0
+    if (!Number.isFinite(seed)) return noFlight()
     const [lat, lon] = REGIONS[seed % REGIONS.length]
     const data = await fetchRegion(lat, lon)
     const airborne = (data.ac ?? []).filter(
@@ -98,21 +118,26 @@ export const GET = async (req: Request) => {
         typeof a.alt_baro === "number" &&
         String(a.flight ?? "").trim().length > 2,
     )
-    if (airborne.length === 0) return Response.json({ flight: null })
-    const a = airborne[seed % airborne.length]
-    return Response.json({
-      flight: {
-        id: String(a.hex),
-        callsign: String(a.flight).trim(),
-        country: "",
-        lat: a.lat,
-        lng: a.lon,
-        heading: a.track ?? 0,
-        speedKmh: Math.round((a.gs as number) * 1.852),
-        altKm: Math.round((a.alt_baro as number) * 0.0003048 * 10) / 10,
+    if (airborne.length === 0) return noFlight()
+    // Region from the low bits, aircraft from the rest, so the eight seeds a
+    // region gets pick eight different aircraft rather than repeating one.
+    const a = airborne[Math.floor(seed / REGIONS.length) % airborne.length]
+    return Response.json(
+      {
+        flight: {
+          id: String(a.hex),
+          callsign: String(a.flight).trim(),
+          country: "",
+          lat: a.lat,
+          lng: a.lon,
+          heading: a.track ?? 0,
+          speedKmh: Math.round((a.gs as number) * 1.852),
+          altKm: Math.round((a.alt_baro as number) * 0.0003048 * 10) / 10,
+        },
       },
-    })
+      { headers: { "Cache-Control": EDGE_CACHE } },
+    )
   } catch {
-    return Response.json({ flight: null })
+    return noFlight()
   }
 }

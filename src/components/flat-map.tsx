@@ -6,7 +6,11 @@ import { geoMercator, geoPath } from "d3-geo"
 import { select } from "d3-selection"
 import { zoom as d3zoom, zoomIdentity, type ZoomBehavior } from "d3-zoom"
 import "d3-transition"
-import { countryFeatures, countryById, type CountryFeature } from "@/lib/geo"
+import {
+  loadCountryFeatures,
+  countryById,
+  type CountryFeature,
+} from "@/lib/geo"
 import { OCEANS, oceanTip } from "@/lib/oceans"
 import {
   LAYERS,
@@ -102,6 +106,28 @@ const CountryPaths = memo(function CountryPaths({
   )
 })
 
+// The 50m countries arrive as a static file rather than in the bundle (see
+// lib/geo); start that request as soon as this module runs in the browser so
+// it overlaps the rest of the page's start-up instead of waiting for a render.
+if (typeof window !== "undefined") loadCountryFeatures().catch(() => {})
+
+// Until the file lands the map draws its oceans, markers and labels without
+// land (no outline placeholder), then the land fades in; on a failed fetch it
+// tries again on the next mount.
+const useCountryFeatures = (): CountryFeature[] | null => {
+  const [features, setFeatures] = useState<CountryFeature[] | null>(null)
+  useEffect(() => {
+    let active = true
+    loadCountryFeatures()
+      .then((f) => active && setFeatures(f))
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [])
+  return features
+}
+
 const FlatMap = ({ size }: Props) => {
   const flight = useTravelStore((s) => s.flight)
   const openFlight = useTravelStore((s) => s.openFlight)
@@ -153,6 +179,7 @@ const FlatMap = ({ size }: Props) => {
   const iss = useISS()
   const moon = useMoon()
   const sun = useSun()
+  const features = useCountryFeatures()
   const [t, setT] = useState<Transform>({ k: 1, x: 0, y: 0 })
   // Live zoom mirror so the focus effect (which only re-fires on focusId) reads
   // the current scale rather than a value captured at the last focusId change.
@@ -216,11 +243,11 @@ const FlatMap = ({ size }: Props) => {
       y: number
     }[]
     return {
-      paths: countryFeatures.map((f) => ({ f, d: path(f) ?? "" })),
+      paths: (features ?? []).map((f) => ({ f, d: path(f) ?? "" })),
       oceans,
       project: projection,
     }
-  }, [size.width, size.height])
+  }, [features, size.width, size.height])
 
   const capital = useMemo(() => {
     if (!selectedId) return null
@@ -474,16 +501,22 @@ const FlatMap = ({ size }: Props) => {
                   </text>
                 ))}
               </g>
-              <CountryPaths
-                paths={paths}
-                statuses={statuses}
-                selectedId={selectedId}
-                palette={palette}
-                onSelect={onSelect}
-                onEnter={onEnter}
-                onMove={onMove}
-                onLeave={onLeave}
-              />
+              {/* Mounted only once the 50m land has arrived, so its fade-in
+                  plays exactly once over the ocean already drawn. */}
+              {features && (
+                <g className="land-in">
+                  <CountryPaths
+                    paths={paths}
+                    statuses={statuses}
+                    selectedId={selectedId}
+                    palette={palette}
+                    onSelect={onSelect}
+                    onEnter={onEnter}
+                    onMove={onMove}
+                    onLeave={onLeave}
+                  />
+                </g>
+              )}
               {clusters.map((cl) => {
                 if (cl.members.length === 1) {
                   const { p, color, x, y } = cl.members[0]

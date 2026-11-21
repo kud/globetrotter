@@ -17,6 +17,8 @@ const HOUR = 3600
  */
 const cached = createMemo()
 
+const EDGE_CACHE = `public, s-maxage=${HOUR}, stale-while-revalidate=${HOUR}`
+
 type Airport = {
   name: string
   iata: string
@@ -122,5 +124,12 @@ export const GET = async (req: Request) => {
   } catch {
     // Partial/empty enrichment is fine — the panel shows what it has.
   }
-  return Response.json(out)
+  // Keyed on hex + callsign, so the edge serves every later visitor who lands
+  // on the same aircraft, for as long as its shortest memo (the route's hour).
+  // An answer with nothing in it is most likely a failed lookup (the helpers
+  // fold errors into null), so it stays off the edge and the next asker retries.
+  const empty = Object.values(out).every((v) => v === null)
+  return Response.json(out, {
+    headers: { "Cache-Control": empty ? "no-store" : EDGE_CACHE },
+  })
 }

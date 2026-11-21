@@ -133,3 +133,23 @@ button:active:not(:disabled),
 .plane-hit:hover .plane-tip {
   opacity: 1;
 }
+
+/* Flat-map land arrives as a separate file (see lib/geo); the ocean and its
+   labels are already on screen, so the countries fade in over them rather
+   than popping. Reduced motion shows them at once. */
+@keyframes land-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.land-in {
+  animation: land-in 200ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .land-in {
+    animation: none;
+  }
+}
